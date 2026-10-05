@@ -1,0 +1,26 @@
+{
+ "clip": "correct_07.mp3",
+ "mood": "happy",
+ "cues": [
+  {
+   "at": "One FINAL encore",
+   "t": null,
+   "do": "play:surprised"
+  },
+  {
+   "at": "from inside the jar",
+   "t": null,
+   "do": "play:magic"
+  },
+  {
+   "at": "from inside the jar",
+   "t": null,
+   "do": "hunt:capture"
+  },
+  {
+   "at": "CAUGHT",
+   "t": null,
+   "do": "play:laughing"
+  }
+ ]
+}

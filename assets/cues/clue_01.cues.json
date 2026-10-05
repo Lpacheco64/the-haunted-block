@@ -1,0 +1,21 @@
+{
+ "clip": "clue_01.mp3",
+ "mood": "suspicious",
+ "cues": [
+  {
+   "at": "hot dogs steam",
+   "t": null,
+   "do": "look:left"
+  },
+  {
+   "at": "Right where you walked in",
+   "t": null,
+   "do": "look:player"
+  },
+  {
+   "at": "make him scream",
+   "t": null,
+   "do": "play:laughing"
+  }
+ ]
+}

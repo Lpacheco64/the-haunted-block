@@ -1,0 +1,21 @@
+{
+ "clip": "clue_05.mp3",
+ "mood": "happy",
+ "cues": [
+  {
+   "at": "Sweet as honey",
+   "t": null,
+   "do": "mood:happy"
+  },
+  {
+   "at": "sharp as cheese",
+   "t": null,
+   "do": "play:surprised"
+  },
+  {
+   "at": "Get him, please",
+   "t": null,
+   "do": "look:player"
+  }
+ ]
+}

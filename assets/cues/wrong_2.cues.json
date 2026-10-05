@@ -1,0 +1,16 @@
+{
+ "clip": "wrong_2.mp3",
+ "mood": "suspicious",
+ "cues": [
+  {
+   "at": "Nope",
+   "t": null,
+   "do": "play:fidget"
+  },
+  {
+   "at": "Don't answer that",
+   "t": null,
+   "do": "play:laughing"
+  }
+ ]
+}

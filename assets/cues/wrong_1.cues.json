@@ -1,0 +1,16 @@
+{
+ "clip": "wrong_1.mp3",
+ "mood": "suspicious",
+ "cues": [
+  {
+   "at": "Wrong circle",
+   "t": null,
+   "do": "look:scanner"
+  },
+  {
+   "at": "LISTEN",
+   "t": null,
+   "do": "look:player"
+  }
+ ]
+}

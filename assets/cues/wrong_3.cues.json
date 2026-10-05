@@ -1,0 +1,21 @@
+{
+ "clip": "wrong_3.mp3",
+ "mood": "suspicious",
+ "cues": [
+  {
+   "at": "Not it",
+   "t": null,
+   "do": "look:scanner"
+  },
+  {
+   "at": "shaking their heads",
+   "t": null,
+   "do": "look:wander"
+  },
+  {
+   "at": "Try again",
+   "t": null,
+   "do": "look:player"
+  }
+ ]
+}

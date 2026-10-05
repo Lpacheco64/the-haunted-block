@@ -1,0 +1,21 @@
+{
+ "clip": "clue_08.mp3",
+ "mood": "suspicious",
+ "cues": [
+  {
+   "at": "the BOSS",
+   "t": null,
+   "do": "mood:scared"
+  },
+  {
+   "at": "runs this place",
+   "t": null,
+   "do": "play:laughing"
+  },
+  {
+   "at": "face to face",
+   "t": null,
+   "do": "look:player"
+  }
+ ]
+}

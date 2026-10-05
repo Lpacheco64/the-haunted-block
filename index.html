@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Block Is Haunted</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{--ink:#efe9dc;--muted:#b9b2a3;--panel:rgba(20,16,22,0.78);--line:rgba(255,255,255,0.14);--accent:#7cff4a;--card:#f3ecd9;--cardink:#2a1f2b;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){}}
+:root[data-theme="dark"]{}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%}
+*{box-sizing:border-box}
+body{margin:0;background:#15121a;color:var(--ink);font:15px/1.4 Georgia,"Times New Roman",serif;overflow:hidden;touch-action:manipulation}
+#stage{position:fixed;inset:0;width:100%;height:100%;display:block}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+.screen.show{display:flex}
+#start{background:linear-gradient(180deg,rgba(21,18,26,0.35),rgba(21,18,26,0.92))}
+h1{font-size:clamp(28px,8vw,40px);margin:0 0 6px;letter-spacing:.02em}
+.sub{color:var(--muted);margin:0 0 22px}
+.btn{font:inherit;font-size:19px;font-weight:700;color:#1d1a12;background:var(--accent);border:0;border-radius:999px;padding:16px 42px;box-shadow:0 10px 30px rgba(124,255,74,0.25);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none;margin-top:12px;font-size:15px;font-weight:400}
+#hud{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);display:none;justify-content:center;padding:12px;pointer-events:none;z-index:3}
+#hud.show{display:flex}
+#station{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 16px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;backdrop-filter:blur(8px)}
+#caption{position:fixed;left:14px;right:14px;top:calc(env(safe-area-inset-top,0px) + 52px);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:10px 64px 10px 14px;font-size:15px;line-height:1.4;display:none;z-index:3;backdrop-filter:blur(8px);max-height:5.2em;overflow:hidden}
+#caption.show{display:block}
+#caption .who{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+#replay{position:absolute;right:8px;bottom:6px;font:inherit;font-size:12px;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+#scanner{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);width:120px;display:none;flex-direction:column;align-items:center;z-index:3}
+#scanner.show{display:flex}
+#scanwin{position:relative;width:110px;height:110px;border-radius:16px;overflow:hidden;background:#000;border:2px solid var(--accent);box-shadow:0 0 24px rgba(124,255,74,0.35)}
+#scanwin video{width:100%;height:100%;object-fit:cover;display:block}
+#scanwin button{position:absolute;inset:0;background:rgba(0,0,0,0.75);color:var(--ink);border:0;font:inherit;font-size:13px}
+#scanwin.ok button{display:none}
+#scanhint{font-size:11px;color:var(--muted);margin-top:6px;white-space:nowrap}
+#scanwin.pulse{animation:pulse .5s ease}
+@keyframes pulse{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+#final{background:rgba(21,18,26,0.92)}
+.card{background:var(--card);color:var(--cardink);border-radius:22px;padding:28px 22px;max-width:360px;width:100%}
+.card h2{margin:0 0 6px;font-size:26px}
+.card .big{font-size:20px;font-weight:700;margin:14px 0 18px}
+.card .btn{background:#2a1f2b;color:#fff;box-shadow:none}
+#dev{position:fixed;left:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:4;display:none;flex-direction:column;gap:6px;max-width:150px}
+#dev.show{display:flex}
+#dev button{font:inherit;font-size:12px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 8px;text-align:left}
+#devstate{font:11px ui-monospace,monospace;color:var(--muted);background:var(--panel);padding:6px;border-radius:8px;white-space:pre-wrap}
+#devtap{position:fixed;left:0;top:0;width:60px;height:60px;z-index:5}
+#shake.on{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translate(0,0)}20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-2px)}}
+</style>
+</head>
+<body>
+<div id="shake" style="position:fixed;inset:0"><canvas id="stage"></canvas></div>
+<div id="hud"><div id="station"></div></div>
+<div id="caption"><div class="who" id="capwho">🧪 Agatha Bramble</div><div id="captext"></div><button id="replay">▶ again</button></div>
+<div id="scanner"><div id="scanwin"><video id="scanvid" muted playsinline autoplay></video><button id="scanbtn">Tap to enable the magic circle</button></div><div id="scanhint">scan the next circle</div></div>
+<div id="start" class="screen show"><h1>The Block Is Haunted</h1><p class="sub">Eight ghosts are loose. Agatha needs a hand.</p><button class="btn" id="startbtn">Let's go</button><button class="btn ghost" id="resumebtn" style="display:none">Pick up where I left off</button></div>
+<div id="final" class="screen"><div class="card"><h2>You did it!</h2><div>The Block Is Haunted · Halloween 2026</div><div class="big">Show this screen at the office to collect your prize</div><button class="btn" id="closebtn">Close</button></div></div>
+<div id="dev"><button id="devcorrect">✓ simulate correct scan</button><button id="devwrong">✗ simulate wrong scan</button><button id="devnext">⏭ skip to next station</button><button id="devreset">↺ reset progress</button><div id="devstate"></div></div>
+<div id="devtap"></div>
+<script src="src/engine.js"></script>
+<script src="src/hunt.js"></script>
+</body>
+</html>

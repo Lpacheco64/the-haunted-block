@@ -1,0 +1,46 @@
+{
+ "clip": "opening.mp3",
+ "mood": "suspicious",
+ "cues": [
+  {
+   "at": "Agatha Bramble",
+   "t": null,
+   "do": "look:player"
+  },
+  {
+   "at": "PERFECT timing",
+   "t": null,
+   "do": "mood:happy"
+  },
+  {
+   "at": "Some FOOL",
+   "t": null,
+   "do": "play:surprised"
+  },
+  {
+   "at": "eight spirits are loose",
+   "t": null,
+   "do": "look:wander"
+  },
+  {
+   "at": "three hundred years old",
+   "t": null,
+   "do": "mood:suspicious"
+  },
+  {
+   "at": "YOU'RE",
+   "t": null,
+   "do": "look:player"
+  },
+  {
+   "at": "scan my magic circle",
+   "t": null,
+   "do": "look:scanner"
+  },
+  {
+   "at": "First ghost",
+   "t": null,
+   "do": "mood:suspicious"
+  }
+ ]
+}

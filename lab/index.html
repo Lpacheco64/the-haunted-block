@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Witch character lab — Phase 2 head art</title>
+<style>
+:root{--bg:#f2f0ea;--panel:#ffffff;--ink:#1f1f22;--muted:#6a6a70;--line:#d8d5cd;--btn:#e8e5de;--btn-on:#cfe3d6;--accent:#2f6f52;--stage:#d6d3cb;--warn:#b23b3b;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#19191d;--panel:#232327;--ink:#e6e4df;--muted:#9b9a94;--line:#37373d;--btn:#2d2d34;--btn-on:#2c4a3b;--accent:#82c8a3;--stage:#2a2a30;--warn:#e26a6a}}
+:root[data-theme="dark"]{--bg:#19191d;--panel:#232327;--ink:#e6e4df;--muted:#9b9a94;--line:#37373d;--btn:#2d2d34;--btn-on:#2c4a3b;--accent:#82c8a3;--stage:#2a2a30;--warn:#e26a6a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:3}
+header h1{font-size:15px;margin:0;font-weight:600}
+header .fps{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
+main{display:flex;flex-wrap:wrap;gap:12px;padding:12px;align-items:flex-start}
+#stagewrap{flex:1 1 340px;display:flex;justify-content:center;align-items:flex-start;overflow:hidden}
+#frame{position:relative;background:var(--stage);border-radius:14px;overflow:hidden;transform-origin:top center;box-shadow:0 0 0 1px var(--line);touch-action:none}
+#c{display:block;width:100%;height:100%}
+#panel{flex:1 1 320px;max-width:560px;display:flex;flex-direction:column;gap:10px}
+.group{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px}
+.group h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 8px;font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;background:var(--btn);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:8px 11px;min-height:40px;cursor:pointer}
+button.on{background:var(--btn-on);border-color:var(--accent)}
+button:active{transform:translateY(1px)}
+.small{font-size:12px;color:var(--muted)}
+#state{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;white-space:pre-wrap;line-height:1.5}
+#log{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;max-height:150px;overflow:auto;white-space:pre-wrap;color:var(--muted)}
+#log .bad{color:var(--warn)}
+.cue{display:grid;grid-template-columns:64px 1fr 1fr;gap:8px;font-size:12px;padding:4px 6px;border-radius:6px}
+.cue.cur{background:var(--btn-on);outline:1px solid var(--accent)}
+.cue.done span:first-child{color:var(--accent)}
+.prow{display:grid;grid-template-columns:22px 1fr 110px 50px;align-items:center;gap:6px;padding:2px 0;font-size:12px}
+.prow input[type=range]{width:100%}
+.prow .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.prow select{font:inherit;font-size:12px}
+details summary{cursor:pointer;color:var(--muted);font-size:12px}
+label.inl{display:inline-flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--line);border-radius:9px;background:var(--btn)}
+input[type=range].wide{width:140px}
+</style>
+</head>
+<body>
+<header><h1>Witch lab · painted Agatha v0</h1><span class="small" id="viewinfo"></span><span class="fps" id="fps">— fps</span></header>
+<main>
+  <div id="stagewrap"><div id="frame"><canvas id="c"></canvas></div></div>
+  <div id="panel">
+    <div class="group"><h2>Moods (persistent)</h2><div class="row" id="moods"></div></div>
+    <div class="group"><h2>Actions (one-shot, priority)</h2><div class="row" id="actions"></div></div>
+    <div class="group"><h2>Overlays</h2><div class="row" id="overlays"></div><div class="small" style="margin-top:6px">Tap the character to make her look at that point.</div></div>
+    <div class="group"><h2>Talk (synthetic envelope — no audio in Phase 1)</h2><div class="row" id="talk"></div></div>
+    <div class="group"><h2>State</h2><div id="state"></div></div>
+    <div class="group"><h2>Tools</h2>
+      <div class="row" id="tools"></div>
+      <div class="row" style="margin-top:8px;align-items:center">
+        <label class="inl">Time <input class="wide" type="range" id="tscale" min="0.1" max="2" step="0.1" value="1"> <span id="tscalev">1.0×</span></label>
+        <label class="inl">Hunch <input class="wide" type="range" id="hunch" min="0" max="1" step="0.05" value="0.5"> <span id="hunchv">0.50</span></label>
+      </div>
+      <div class="row" style="margin-top:8px" id="viewports"></div>
+    </div>
+    <div class="group"><h2>Cue editor (real audio drives the mouth)</h2>
+  <div class="row"><select id="cuesel"></select><button id="cueload">Load recording…</button><input type="file" id="cuefile" accept="audio/*" style="display:none"></div>
+  <div class="row" style="margin-top:8px"><button id="cueplay">Play</button><button id="cuepause">Pause</button><button id="cuestop">Stop</button><button id="cuestamp" style="font-weight:600;min-width:120px">Stamp cue</button><button id="cueundo">Undo</button><span class="small" id="cuetime" style="align-self:center">no audio</span></div>
+  <div id="cuelist" style="margin-top:8px"></div>
+  <details style="margin-top:8px"><summary>Cue JSON (copy into assets/cues/)</summary><textarea id="cuejson" style="width:100%;height:140px;font:11px ui-monospace,monospace;margin-top:6px"></textarea></details>
+</div>
+<div class="group"><h2>Event log</h2><div id="log"></div></div>
+    <div class="group"><details><summary>All parameters (drag to pin; unpin to release)</summary><div id="params" style="margin-top:8px"></div></details></div>
+  </div>
+</main>
+<script src="../src/engine.js"></script>
+<script>
+// ---------- Stage / renderer ----------
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const frame=document.getElementById('frame'),wrap=document.getElementById('stagewrap');
+let view=[1,0,0,1,0,0],cssW=390,cssH=700,dpr=1,preset=null,scaleFactor=1,rigScale=1;
+const overlays={pivots:false,bounds:false,labels:false};
+function layout(){const availW=wrap.clientWidth-4;let w,h;if(!preset){w=availW;h=Math.round(Math.max(360,Math.min(window.innerHeight*0.64,availW*1.7)));scaleFactor=1;}else{w=preset[0];h=preset[1];scaleFactor=Math.min(1,availW/w);}
+ cssW=w;cssH=h;frame.style.width=w+'px';frame.style.height=h+'px';frame.style.transform='scale('+scaleFactor+')';wrap.style.height=Math.round(h*scaleFactor)+'px';
+ dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
+ const s=Math.min(w/1000,h/1600)*0.96;rigScale=s;const ox=(w-1000*s)/2,oy=(h-1600*s)/2;view=[s*dpr,0,0,s*dpr,ox*dpr,oy*dpr];
+ document.getElementById('viewinfo').textContent=w+'×'+h+' · face '+Math.round(344*s/w*100)+'% of width';}
+window.addEventListener('resize',layout);
+let stageBg='#d6d3cb';function readTheme(){stageBg=getComputedStyle(document.documentElement).getPropertyValue('--stage').trim()||stageBg;}
+readTheme();if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTheme);
+function render(P){rigUpdate(P);ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle=stageBg;ctx.fillRect(0,0,canvas.width,canvas.height);
+ for(const n of sortedDrawList(P)){if(standinMode&&!STANDIN_IDS.has(n.id))continue;if(!standinMode&&n.kind==='raster')continue;const m=mmul(view,n.world);ctx.setTransform(m[0],m[1],m[2],m[3],m[4],m[5]);if(n.id==='w-fx')fxDraw(ctx);else if(rasterEnabled&&RASTER[n.id]&&n.id!=='w-jaw')drawRaster(ctx,n.id);else n.draw(ctx,P,n);}
+ if(overlays.pivots||overlays.labels||overlays.bounds){ctx.setTransform(dpr,0,0,dpr,0,0);const vs=[view[0]/dpr,0,0,view[3]/dpr,view[4]/dpr,view[5]/dpr];
+  for(const n of NODES){const [x,y]=mpt(mmul(vs,n.world),n.pivot[0],n.pivot[1]);
+   if(overlays.pivots){ctx.strokeStyle=n.kind==='anchor'?'#39a0ff':'#ff9a2a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.stroke();ctx.beginPath();ctx.moveTo(x-9,y);ctx.lineTo(x+9,y);ctx.moveTo(x,y-9);ctx.lineTo(x,y+9);ctx.stroke();}
+   if(overlays.labels){ctx.fillStyle='rgba(0,0,0,0.6)';ctx.font='10px system-ui';const tw=ctx.measureText(n.id).width;ctx.fillRect(x+6,y-7,tw+6,13);ctx.fillStyle='#fff';ctx.fillText(n.id,x+9,y+3);}}
+  if(overlays.bounds){ctx.strokeStyle='rgba(60,180,255,0.6)';ctx.lineWidth=1;const m=vs;const c=[[0,0],[1000,0],[1000,1600],[0,1600]].map(p=>mpt(m,p[0],p[1]));ctx.strokeRect(c[0][0],c[0][1],c[1][0]-c[0][0],c[2][1]-c[0][1]);
+   const hh=[[328,420],[672,420],[672,750],[328,750]].map(p=>mpt(mmul(vs,NODE['w-head'].world),p[0],p[1]));ctx.beginPath();hh.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.stroke();}}}
+
+// ---------- loop ----------
+const anim=new Animator();let paused=false,hiddenPause=false,timeScale=1,last=performance.now(),frameMs=0,fpsAcc=0,fpsN=0,fpsShown=0,uiTick=0,P=defaults();
+function step(dt){const t0=performance.now();P=anim.update(dt);fxUpdate(dt,P);render(P);frameMs=lerp(frameMs,performance.now()-t0,0.1);}
+function loop(now){let dt=Math.min((now-last)/1000,0.05);last=now;if(!paused&&!hiddenPause){step(dt*timeScale);fpsAcc+=dt;fpsN++;if(fpsAcc>=0.5){fpsShown=fpsN/fpsAcc;fpsAcc=0;fpsN=0;document.getElementById('fps').textContent=fpsShown.toFixed(0)+' fps · '+frameMs.toFixed(1)+' ms';}}
+ if(++uiTick%6===0){refreshUI();if(cuePlaying)cueRender();}requestAnimationFrame(loop);}
+document.addEventListener('visibilitychange',()=>{hiddenPause=document.hidden;if(!document.hidden)last=performance.now();anim.log(document.hidden?'page hidden: clock paused':'page visible: clock resumed');});
+
+// ---------- lab UI ----------
+const $=id=>document.getElementById(id);
+function btn(parent,label,fn,id){const b=document.createElement('button');b.textContent=label;b.onclick=fn;if(id)b.dataset.id=id;$(parent).appendChild(b);return b;}
+[['neutral','Idle / neutral'],['happy','Happy (smile)'],['suspicious','Suspicious'],['scared','Scared']].forEach(([m,l])=>btn('moods',l,()=>anim.setMood(m),'mood:'+m));
+[['surprised','Surprise'],['laughing','Laugh'],['magic','Magic'],['celebrating','Celebrate'],['fidget','Fidget']].forEach(([a,l])=>btn('actions',l,()=>anim.play(a),'act:'+a));
+btn('overlays','Blink',()=>anim.triggerBlink());
+[['left','Look left'],['right','Look right'],['up','Look up'],['down','Look down'],['player','Look at player'],['auto','Wander (auto)']].forEach(([g,l])=>btn('overlays',l,()=>anim.lookAt(g),'gaze:'+g));
+btn('talk','Talk 3s',()=>anim.say(3));btn('talk','Talk 8s',()=>anim.say(8));
+[['normal','Style: normal'],['wide','Style: wide'],['grin','Style: grin'],['shaky','Style: shaky']].forEach(([s,l])=>btn('talk',l,()=>anim.say(4,s)));
+btn('talk','Stop',()=>anim.stopSpeaking());
+const tPivots=btn('tools','Pivots',()=>{overlays.pivots=!overlays.pivots;tPivots.classList.toggle('on',overlays.pivots);});
+const tLabels=btn('tools','Node labels',()=>{overlays.labels=!overlays.labels;tLabels.classList.toggle('on',overlays.labels);});
+const tBounds=btn('tools','Bounds',()=>{overlays.bounds=!overlays.bounds;tBounds.classList.toggle('on',overlays.bounds);});
+const tSeam=btn('tools','Seam highlight',()=>{seamMode=!seamMode;tSeam.classList.toggle('on',seamMode);});
+const tPause=btn('tools','Pause',()=>{paused=!paused;tPause.textContent=paused?'Resume':'Pause';tPause.classList.toggle('on',paused);});
+btn('tools','Step frame',()=>{if(paused)step(1/60*timeScale);});
+btn('tools','Seam sweep (12s)',()=>anim.play('sweep',{force:true}));
+btn('tools','Spam test (5s)',()=>{anim.spam={until:anim.t+5,nextAt:anim.t,n:0,nan:false};anim.log('spam test started');});
+btn('tools','Check rig',()=>{let bad=0;const seen=new Set();for(const n of NODES){if(seen.has(n.id)){anim.log('duplicate id '+n.id,true);bad++;}seen.add(n.id);if(n.parent&&!NODE[n.parent]){anim.log(n.id+': missing parent '+n.parent,true);bad++;}if(!n.pivot||n.pivot.some(v=>typeof v!=='number')){anim.log(n.id+': bad pivot',true);bad++;}if(!n.draw&&n.kind!=='group'&&n.kind!=='anchor'){anim.log(n.id+': no draw fn',true);bad++;}}
+ for(const s in MOUTH)if(MOUTH[s].w<110){anim.log('mouth '+s+' narrower than jaw edge (110)',true);bad++;}
+ anim.log('rig check: '+NODES.length+' nodes, '+DRAWLIST.length+' drawable, '+Object.keys(MOUTH).length+' mouth variants, '+(bad?bad+' problems':'OK'),bad>0);});
+const tPaint=btn('tools','Painted Agatha (layers)',async()=>{if(!ART.on){tPaint.textContent='loading…';await loadCues('../assets/cues',Object.keys(CUE_DRAFTS).length?[]:['opening','final','wrong_1','wrong_2','wrong_3',...Array.from({length:8},(_,i)=>'clue_0'+(i+1)),...Array.from({length:8},(_,i)=>'correct_0'+(i+1))]);await loadPaintedFrom('../assets/witch');tPaint.textContent='Painted Agatha (layers)';tPaint.classList.add('on');}});
+const tStand=btn('tools','Stand-in master (raster test)',async()=>{if(!RASTER['standin-body']){tStand.textContent='loading…';await loadStandin();}else standinMode=!standinMode;tStand.textContent='Stand-in master (raster test)';tStand.classList.toggle('on',standinMode);});
+const tMK=btn('tools','Mouth compositor (stub kit)',()=>{if(!MOUTHKIT.pieces)buildStubKits();MOUTHKIT.on=!MOUTHKIT.on;tMK.classList.toggle('on',MOUTHKIT.on);});
+const tEK=btn('tools','Eye kit (stub)',()=>{if(!EYEKIT.ball)buildStubKits();EYEKIT.on=!EYEKIT.on;tEK.classList.toggle('on',EYEKIT.on);});
+const fileIn=document.createElement('input');fileIn.type='file';fileIn.multiple=true;fileIn.accept='image/png,image/webp';fileIn.style.display='none';document.body.appendChild(fileIn);fileIn.onchange=()=>validateLayerFiles([...fileIn.files]);
+btn('tools','Load layer PNGs…',()=>fileIn.click());
+btn('tools','Reset pins',()=>{anim.pins={};document.querySelectorAll('#params input[type=checkbox]').forEach(c=>c.checked=false);});
+[[null,'Fit'],[360,640],[390,844],[430,932]].forEach(([w,h])=>{const b=btn('viewports',w?w+'×'+h:'Fit',()=>{preset=w?[w,h]:null;layout();document.querySelectorAll('#viewports button').forEach(x=>x.classList.remove('on'));b.classList.add('on');});if(!w)b.classList.add('on');});
+$('tscale').oninput=e=>{timeScale=+e.target.value;$('tscalev').textContent=timeScale.toFixed(1)+'×';};
+$('hunch').oninput=e=>{const v=+e.target.value;$('hunchv').textContent=v.toFixed(2);anim.pins['body.hunch']=v;};
+// param sliders
+const pRows={};
+for(const p in PARAMS){if(SPRING_OUT.has(p))continue;const [d,mn,mx]=PARAMS[p];const row=document.createElement('div');row.className='prow';
+ row.innerHTML='<input type="checkbox" title="pin"><span>'+p+'</span><input type="range" min="'+mn+'" max="'+mx+'" step="'+((mx-mn)/200)+'" value="'+d+'"><span class="v"></span>';
+ const [cb,,rg,v]=row.children;rg.oninput=()=>{cb.checked=true;anim.pins[p]=+rg.value;};cb.onchange=()=>{if(cb.checked)anim.pins[p]=+rg.value;else delete anim.pins[p];};pRows[p]={cb,rg,v};$('params').appendChild(row);}
+for(const p in ENUMS){const row=document.createElement('div');row.className='prow';const opts=p==='mouth.shape'?Object.keys(MOUTH):Object.keys(HAND_POSES);
+ row.innerHTML='<input type="checkbox"><span>'+p+'</span><select>'+opts.map(o=>'<option>'+o+'</option>').join('')+'</select><span class="v"></span>';
+ const [cb,,sel,v]=row.children;sel.onchange=()=>{cb.checked=true;anim.pins[p]=sel.value;};cb.onchange=()=>{if(cb.checked)anim.pins[p]=sel.value;else delete anim.pins[p];};pRows[p]={cb,rg:sel,v};$('params').appendChild(row);}
+let lastLogLen=-1;
+function refreshUI(){const a=anim.action,sp=anim.speech,g=anim.gaze;
+ $('state').textContent='mood     : '+anim.mood+(anim.moodT<1?' (blending from '+anim.prevMood+' '+Math.round(anim.moodT*100)+'%)':'')+
+  '\naction   : '+(a?a.id+' p'+a.def.priority+' '+a.elapsed.toFixed(2)+'/'+a.def.duration+'s w='+(a.w||0).toFixed(2)+(a.st.seg!=null?' seg '+a.st.seg:'')+(a.def.locks?' locks='+Object.keys(a.def.locks).join(','):''):'none')+
+  (anim.queue?'\nqueued   : '+anim.queue.id:'')+'\nspeech   : '+(sp?sp.t.toFixed(1)+'/'+sp.dur+'s shape='+sp.shape+' lvl='+P['mouth.open'].toFixed(2):'no')+
+  '\ngaze     : '+g.mode+(g.mode==='auto'?' → '+MOODS[anim.mood].gaze:'')+'  ('+P['gaze.x'].toFixed(2)+', '+P['gaze.y'].toFixed(2)+')'+
+  '\nmouth    : '+P['mouth.shape']+'  jaw.drop='+P['jaw.drop'].toFixed(2)+'\nblink    : '+(anim.blink.phase?'closing/opening':'next in '+Math.max(0,anim.blink.next-anim.t).toFixed(1)+'s')+
+  '\npins     : '+Object.keys(anim.pins).length+'   fading='+anim.fading.length+'   clock='+anim.t.toFixed(1)+'s'+'\nraster   : '+Object.keys(RASTER).length+' layers, '+(rasterBytes()/1048576).toFixed(1)+' MB cache'+(standinMode?' (stand-in mode)':'')+'   mouthKit='+MOUTHKIT.on+' eyeKit='+EYEKIT.on;
+ for(const p in pRows){const r=pRows[p];if(!r.cb.checked){if(r.rg.tagName==='SELECT')r.rg.value=P[p];else r.rg.value=P[p];}r.v.textContent=typeof P[p]==='number'?P[p].toFixed(2):P[p];}
+ if(anim.events.length!==lastLogLen){lastLogLen=anim.events.length;$('log').innerHTML=anim.events.slice(-14).reverse().map(e=>'<div'+(e.bad?' class="bad"':'')+'>'+e.t.toFixed(1)+'s  '+e.s+'</div>').join('');}}
+// touch: look at tap point
+frame.addEventListener('pointerdown',e=>{const r=frame.getBoundingClientRect();const x=(e.clientX-r.left)/scaleFactor,y=(e.clientY-r.top)/scaleFactor;const rx=(x*dpr-view[4])/view[0],ry=(y*dpr-view[5])/view[3];const [hx,hy]=worldPoint('w-head',500,585);
+ anim.lookAt('point',[clamp((rx-hx)/380,-1,1),clamp((ry-hy)/380,-1,1)]);});
+const cuesel=$('cuesel');loadCues('../assets/cues',['opening','final','wrong_1','wrong_2','wrong_3',...Array.from({length:8},(_,i)=>'clue_0'+(i+1)),...Array.from({length:8},(_,i)=>'correct_0'+(i+1))]).then(()=>{Object.keys(CUE_DRAFTS).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;cuesel.appendChild(o);});if(cuesel.value)cueSelect(cuesel.value);});Object.keys(CUE_DRAFTS).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;cuesel.appendChild(o);});cuesel.onchange=()=>cueSelect(cuesel.value);cueSelect(cuesel.value);
+$('cueload').onclick=()=>$('cuefile').click();$('cuefile').onchange=()=>{if($('cuefile').files[0])cueLoadFile($('cuefile').files[0]);};
+$('cueplay').onclick=cuePlay;$('cuepause').onclick=cuePause;$('cuestop').onclick=cueStop;$('cuestamp').onclick=cueStamp;$('cueundo').onclick=cueUndo;
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body){e.preventDefault();cueStamp();}});
+layout();anim.log('lab ready: '+NODES.length+' nodes');requestAnimationFrame(loop);
+</script>
+</body>
+</html>

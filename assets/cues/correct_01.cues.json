@@ -1,0 +1,26 @@
+{
+ "clip": "correct_01.mp3",
+ "mood": "happy",
+ "cues": [
+  {
+   "at": "GOTCHA",
+   "t": null,
+   "do": "play:surprised"
+  },
+  {
+   "at": "Into the jar",
+   "t": null,
+   "do": "play:magic"
+  },
+  {
+   "at": "Into the jar",
+   "t": null,
+   "do": "hunt:capture"
+  },
+  {
+   "at": "brought a hot dog",
+   "t": null,
+   "do": "play:laughing"
+  }
+ ]
+}

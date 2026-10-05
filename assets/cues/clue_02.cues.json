@@ -1,0 +1,21 @@
+{
+ "clip": "clue_02.mp3",
+ "mood": "suspicious",
+ "cues": [
+  {
+   "at": "climb up to eat",
+   "t": null,
+   "do": "look:up"
+  },
+  {
+   "at": "Careful",
+   "t": null,
+   "do": "play:surprised"
+  },
+  {
+   "at": "she bites feet",
+   "t": null,
+   "do": "look:down"
+  }
+ ]
+}

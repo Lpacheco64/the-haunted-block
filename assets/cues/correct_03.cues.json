@@ -1,0 +1,26 @@
+{
+ "clip": "correct_03.mp3",
+ "mood": "happy",
+ "cues": [
+  {
+   "at": "The Browser",
+   "t": null,
+   "do": "play:surprised"
+  },
+  {
+   "at": "finally stay TIDY",
+   "t": null,
+   "do": "play:laughing"
+  },
+  {
+   "at": "Into the jar",
+   "t": null,
+   "do": "play:magic"
+  },
+  {
+   "at": "Into the jar",
+   "t": null,
+   "do": "hunt:capture"
+  }
+ ]
+}

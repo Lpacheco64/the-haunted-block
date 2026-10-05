@@ -1,0 +1,26 @@
+{
+ "clip": "correct_02.mp3",
+ "mood": "happy",
+ "cues": [
+  {
+   "at": "Caught her",
+   "t": null,
+   "do": "play:surprised"
+  },
+  {
+   "at": "In you go",
+   "t": null,
+   "do": "play:magic"
+  },
+  {
+   "at": "In you go",
+   "t": null,
+   "do": "hunt:capture"
+  },
+  {
+   "at": "Watch the feet",
+   "t": null,
+   "do": "look:down"
+  }
+ ]
+}

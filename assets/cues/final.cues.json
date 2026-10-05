@@ -1,0 +1,51 @@
+{
+ "clip": "final.mp3",
+ "mood": "happy",
+ "cues": [
+  {
+   "at": "EIGHT ghosts",
+   "t": null,
+   "do": "play:surprised"
+  },
+  {
+   "at": "OUT you go",
+   "t": null,
+   "do": "play:magic"
+  },
+  {
+   "at": "OUT you go",
+   "t": null,
+   "do": "hunt:release"
+  },
+  {
+   "at": "invited THIS time",
+   "t": null,
+   "do": "play:celebrating"
+  },
+  {
+   "at": "your reward lives",
+   "t": null,
+   "do": "look:player"
+  },
+  {
+   "at": "Show this screen",
+   "t": null,
+   "do": "hunt:prize"
+  },
+  {
+   "at": "potion's glow",
+   "t": null,
+   "do": "play:magic"
+  },
+  {
+   "at": "heh heh heh",
+   "t": null,
+   "do": "play:laughing"
+  },
+  {
+   "at": "HEH HEH HEH",
+   "t": null,
+   "do": "play:laughing"
+  }
+ ]
+}
