@@ -182,7 +182,7 @@ function drawJar(ctx,W,H,dt){
     if(f.phase==='panic'){ctx.shadowColor='rgba(124,255,74,0.9)';ctx.shadowBlur=18;}
     drawGhostFigure(ctx,{size,T:ghost.t,station:s,look:flyGhost.look,lid:flyGhost.lid,blink:0});ctx.restore();}
   // finale: the lid has blown, the ghosts are out and partying
-  if(jar.released){for(const p of jar.party){p.t+=dt;const tx=W*(0.5+0.36*Math.cos(p.ph+p.t*p.r*3)),ty=H*(0.3+0.1*Math.sin(p.ph*1.7+p.t*p.r*2.3));
+  if(jar.released){if(Math.random()<dt*2.2){const st=HUNT.stations[Math.floor(Math.random()*HUNT.stations.length)];jarFx(W*(0.12+0.76*Math.random()),H*(0.16+0.3*Math.random()),34,st.accent,170,1.3);}for(const p of jar.party){p.t+=dt;const tx=W*(0.5+0.36*Math.cos(p.ph+p.t*p.r*3)),ty=H*(0.3+0.1*Math.sin(p.ph*1.7+p.t*p.r*2.3));
       p.vx+=((tx-p.x)*2.2-p.vx*1.4)*dt;p.vy+=((ty-p.y)*2.2-p.vy*1.4)*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
       ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.sin(p.t*2+p.ph)*0.2);ctx.shadowColor=p.st.accent;ctx.shadowBlur=12;
       drawGhostFigure(ctx,{size:H*0.095,T:p.t+p.i,station:p.st,look:[0,0.15],lid:0.05,blink:blinkAmt(p.i*17,p.t),eyeBoost:1.35});ctx.restore();

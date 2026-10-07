@@ -122,7 +122,7 @@ async function onCorrect(){if(hunt.busy||hunt.state!=='STATION')return;const s=H
  if(!jar.fly&&ghost.st!=='gone')jarCapture();while(ghost.st!=='gone')await waitSec(0.05);await waitSec(0.4);$('scanwin').classList.remove('pulse');
  if(hunt.step>=7){await runFinale();return;}hunt.step++;hunt.busy=false;await runClue();}
 async function onWrong(){if(hunt.busy||hunt.state!=='STATION')return;hunt.busy=true;const i=hunt.wrongIdx;hunt.wrongIdx=(i+1)%3;ghost.st='idle';ghostNotice();await say('wrong_'+(i+1),HUNT.wrong[i],{mood:'suspicious'});hunt.busy=false;}
-async function runFinale(){setState('FINALE');hunt.busy=true;$('scanner').classList.remove('show');anim.play('celebrating');await say('final',HUNT.final,{mood:'happy'});if(!jar.released)jarRelease();await anim.play('laughing');setState('DONE');hunt.done=true;save({done:true});$('final').classList.add('show');}
+async function runFinale(){setState('FINALE');hunt.busy=true;$('scanner').classList.remove('show');anim.play('celebrating');await say('final',HUNT.final,{mood:'happy'});if(!jar.released)jarRelease();await anim.play('laughing');for(const a of ['celebrating','magic','celebrating','laughing','celebrating']){await anim.play(a);}setState('DONE');hunt.done=true;save({done:true});$('final').classList.add('show');}
 
 // ---------- scanner ----------
 let scanning=false,lastScan='',lastScanAt=-9;
