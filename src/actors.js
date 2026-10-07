@@ -85,7 +85,7 @@ function drawGhostFigure(ctx,o){
 // ---------- the main ghost at the current station ----------
 const ghost={st:'idle',x:0,y:0,sx:1,sy:1,alpha:1,t:0,idx:-1,appear:1,notice:0,panic:0,size:0};
 const GSIZE=0.2;   // ghost size as a fraction of screen height (was 0.13; props scale with it)
-function ghostHome(W,H){return [W*0.73,H*0.74-H*0.30];}
+function ghostHome(W,H){return [W*0.73,H*0.74-H*0.23];}
 function ghostNotice(){ghost.notice=1.4;}
 function blinkAmt(seed,T){const ph=(T*0.31+seed/97)%1;return ph<0.035?Math.sin(ph/0.035*Math.PI):0;}
 const easeOutBack=t=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2);};
@@ -129,7 +129,7 @@ function drawJar(ctx,W,H,dt){
   const f=jar.fly,mx=g.x,my=g.y-g.h*1.02;let flyGhost=null;
   if(f){f.t+=dt;
     if(f.phase==='panic'){ghost.panic=1;if(f.t>=0.35){f.phase='fly';f.t=0;}flyGhost={x:f.x0+(Math.random()-0.5)*6,y:f.y0,sx:1,sy:1,k:1,look:[0,0.3],lid:0,alpha:1};}
-    else if(f.phase==='fly'){const u=Math.min(1,f.t/1.0),e=easeIO(u),cx=lerp(f.x0,mx,0.4),cy=Math.min(f.y0,my)-H*0.16,x=(1-e)*(1-e)*f.x0+2*(1-e)*e*cx+e*e*mx,y=(1-e)*(1-e)*f.y0+2*(1-e)*e*cy+e*e*my;
+    else if(f.phase==='fly'){const u=Math.min(1,f.t/1.0),e=easeIO(u),cx=lerp(f.x0,mx,0.4),cy=Math.min(f.y0,my)-H*0.08,x=(1-e)*(1-e)*f.x0+2*(1-e)*e*cx+e*e*mx,y=(1-e)*(1-e)*f.y0+2*(1-e)*e*cy+e*e*my;
       const mini=g.wb*0.3/(ghost.size||H*GSIZE);flyGhost={x,y,sx:1-0.35*Math.sin(Math.PI*u),sy:1+0.5*Math.sin(Math.PI*u),k:lerp(1,mini,e),look:[Math.cos(u*3)*0.5,-0.4],lid:0,alpha:1};
       f.trail.push([x,y]);if(f.trail.length>20)f.trail.shift();if(Math.random()<0.6)jarFx(x,y,1,'rgba(124,255,74,0.9)',60,0.6);
       if(u>=1){f.phase='drop';f.t=0;}}
@@ -182,7 +182,7 @@ function drawJar(ctx,W,H,dt){
     if(f.phase==='panic'){ctx.shadowColor='rgba(124,255,74,0.9)';ctx.shadowBlur=18;}
     drawGhostFigure(ctx,{size,T:ghost.t,station:s,look:flyGhost.look,lid:flyGhost.lid,blink:0});ctx.restore();}
   // finale: the lid has blown, the ghosts are out and partying
-  if(jar.released){for(const p of jar.party){p.t+=dt;const tx=W*(0.5+0.36*Math.cos(p.ph+p.t*p.r*3)),ty=H*(0.2+0.12*Math.sin(p.ph*1.7+p.t*p.r*2.3));
+  if(jar.released){for(const p of jar.party){p.t+=dt;const tx=W*(0.5+0.36*Math.cos(p.ph+p.t*p.r*3)),ty=H*(0.3+0.1*Math.sin(p.ph*1.7+p.t*p.r*2.3));
       p.vx+=((tx-p.x)*2.2-p.vx*1.4)*dt;p.vy+=((ty-p.y)*2.2-p.vy*1.4)*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
       ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.sin(p.t*2+p.ph)*0.2);ctx.shadowColor=p.st.accent;ctx.shadowBlur=12;
       drawGhostFigure(ctx,{size:H*0.095,T:p.t+p.i,station:p.st,look:[0,0.15],lid:0.05,blink:blinkAmt(p.i*17,p.t),eyeBoost:1.35});ctx.restore();
