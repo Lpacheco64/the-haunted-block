@@ -90,52 +90,7 @@ function drawScene(ctx,W,H,dt){ctx.fillStyle=sceneCol;ctx.fillRect(0,0,W,H);
  for(const b of flies){b.p+=dt*b.s;const x=b.x*W+Math.sin(b.p)*18,y=b.y*H+Math.cos(b.p*0.7)*12,a=0.3+0.5*Math.abs(Math.sin(b.p*1.3));ctx.fillStyle='rgba(180,255,120,'+a+')';ctx.beginPath();ctx.arc(x,y,2.2,0,TAU);ctx.fill();}
  if(Math.random()<0.02){ctx.fillStyle='rgba(255,240,200,0.06)';ctx.fillRect(0,0,W,H);}}
 
-// ---------- ghost (procedural placeholder actor) ----------
-const ghost={st:'idle',x:0,y:0,bob:0,sx:1,sy:1,alpha:1,t:0};
-function ghostHome(W,H){return [W*0.74,H*0.74-H*0.30];}
-function drawGhost(ctx,W,H,dt){const s=HUNT.stations[hunt.step];if(!s||ghost.st==='gone')return;ghost.t+=dt;const [hx,hy]=ghostHome(W,H);const size=H*0.13;
- if(ghost.st==='idle'){ghost.x=hx+Math.sin(ghost.t*0.9)*10;ghost.y=hy+Math.sin(ghost.t*1.6)*9;ghost.sx=1+Math.sin(ghost.t*1.6)*0.03;ghost.sy=1-Math.sin(ghost.t*1.6)*0.03;ghost.alpha=0.95;}
- const T=ghost.t;ctx.save();ctx.globalAlpha=ghost.alpha;ctx.translate(ghost.x,ghost.y);ctx.scale(ghost.sx,ghost.sy);ctx.rotate(Math.sin(T*0.9)*0.06);
- // body: tall drape over a pear, ragged translucent hem
- const w=size*0.78,h=size*1.25;const g=ctx.createLinearGradient(0,-h*0.6,0,h*0.5);g.addColorStop(0,'rgba(236,233,224,0.96)');g.addColorStop(0.7,'rgba(222,220,212,0.9)');g.addColorStop(1,'rgba(222,220,212,0.15)');
- ctx.beginPath();ctx.moveTo(-w*0.46,h*0.1);ctx.bezierCurveTo(-w*0.55,-h*0.35,-w*0.3,-h*0.62,0,-h*0.62);ctx.bezierCurveTo(w*0.3,-h*0.62,w*0.55,-h*0.35,w*0.46,h*0.1);
- ctx.quadraticCurveTo(w*0.5,h*0.3,w*0.42,h*0.42);for(let i=0;i<7;i++){const f=i/6,x=w*0.42-f*w*0.84,yy=h*0.42+(i%2?-h*0.07:h*0.02)+Math.sin(T*2+i)*h*0.02;ctx.quadraticCurveTo(x+w*0.06,yy+h*0.04,x,yy);}
- ctx.quadraticCurveTo(-w*0.5,h*0.3,-w*0.46,h*0.1);ctx.closePath();ctx.fillStyle=g;ctx.fill();
- // shading
- const sh=ctx.createRadialGradient(-w*0.2,-h*0.35,w*0.1,0,-h*0.1,w*0.9);sh.addColorStop(0,'rgba(255,255,255,0.35)');sh.addColorStop(1,'rgba(60,50,70,0.22)');ctx.fillStyle=sh;ctx.fill();
- // eyes: big, heavy-lidded, looking toward the witch
- const ex=[-w*0.19,w*0.17],ey=-h*0.3,er=[w*0.15,w*0.13],gx=-w*0.05+Math.sin(T*0.5)*w*0.02;
- ex.forEach((x,i)=>{ctx.fillStyle='#2a2430';ctx.beginPath();ctx.arc(x,ey,er[i]+2,0,TAU);ctx.fill();ctx.fillStyle='#fbfaf4';ctx.beginPath();ctx.arc(x,ey,er[i],0,TAU);ctx.fill();
-  ctx.fillStyle='#1a1414';ctx.beginPath();ctx.arc(x+gx,ey+er[i]*0.15,er[i]*0.42,0,TAU);ctx.fill();ctx.fillStyle='rgba(255,255,255,0.9)';ctx.beginPath();ctx.arc(x+gx-er[i]*0.15,ey-er[i]*0.05,er[i]*0.12,0,TAU);ctx.fill();
-  ctx.save();ctx.beginPath();ctx.arc(x,ey,er[i]+1,0,TAU);ctx.clip();ctx.fillStyle='rgba(222,220,212,0.98)';ctx.fillRect(x-er[i]-2,ey-er[i]-2,er[i]*2+4,er[i]*0.95);ctx.restore();
-  ctx.strokeStyle='rgba(42,36,48,0.8)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-er[i],ey-er[i]*0.05);ctx.quadraticCurveTo(x,ey-er[i]*0.25,x+er[i],ey-er[i]*0.05);ctx.stroke();});
- // prop on the side (station accent)
- ctx.save();ctx.translate(w*0.5,-h*0.05+Math.sin(T*1.6)*4);ctx.rotate(-0.3+Math.sin(T*1.2)*0.08);ctx.fillStyle=s.accent;ctx.strokeStyle='rgba(0,0,0,0.35)';ctx.lineWidth=1.5;
- const pr=s.prop;if(pr==='hotdog'){rrPath(ctx,-w*0.22,-w*0.08,w*0.44,w*0.16,w*0.08);ctx.fill();ctx.stroke();}
- else if(pr==='book'){ctx.fillRect(-w*0.18,-w*0.12,w*0.36,w*0.26);ctx.strokeRect(-w*0.18,-w*0.12,w*0.36,w*0.26);ctx.beginPath();ctx.moveTo(0,-w*0.12);ctx.lineTo(0,w*0.14);ctx.stroke();}
- else if(pr==='cheese'){ctx.beginPath();ctx.moveTo(-w*0.2,w*0.1);ctx.lineTo(w*0.2,w*0.1);ctx.lineTo(w*0.05,-w*0.14);ctx.closePath();ctx.fill();ctx.stroke();}
- else if(pr==='mic'){ctx.beginPath();ctx.arc(0,-w*0.08,w*0.09,0,TAU);ctx.fill();ctx.stroke();ctx.fillRect(-w*0.03,0,w*0.06,w*0.22);}
- else if(pr==='clipboard'){ctx.fillRect(-w*0.14,-w*0.16,w*0.28,w*0.34);ctx.strokeRect(-w*0.14,-w*0.16,w*0.28,w*0.34);ctx.fillStyle='#fff';ctx.fillRect(-w*0.1,-w*0.1,w*0.2,w*0.22);}
- else if(pr==='mower'){ctx.fillRect(-w*0.2,-w*0.05,w*0.3,w*0.14);ctx.beginPath();ctx.arc(-w*0.16,w*0.12,w*0.06,0,TAU);ctx.arc(w*0.06,w*0.12,w*0.06,0,TAU);ctx.fill();ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(w*0.08,-w*0.05);ctx.lineTo(w*0.26,-w*0.3);ctx.stroke();}
- else if(pr==='fork'){ctx.lineWidth=3;ctx.strokeStyle=s.accent;ctx.beginPath();ctx.moveTo(0,w*0.22);ctx.lineTo(0,-w*0.1);ctx.stroke();[-w*0.06,0,w*0.06].forEach(x=>{ctx.beginPath();ctx.moveTo(x,-w*0.1);ctx.lineTo(x,-w*0.24);ctx.stroke();});}
- else{rrPath(ctx,-w*0.1,-w*0.14,w*0.2,w*0.28,w*0.03);ctx.fill();ctx.stroke();ctx.strokeStyle='#fff';ctx.beginPath();ctx.moveTo(0,-w*0.14);ctx.lineTo(0,-w*0.26);ctx.stroke();}
- ctx.restore();ctx.restore();}
-// ---------- jar ----------
-const jar={count:0,rattle:0,glow:0,lid:1,fly:null,released:false};
-function jarGeom(W,H){const h=H*0.14,w=h*0.62,x=W*0.84,y=H*0.74;return{x,y,w,h};}
-function jarCapture(){const W=canvas.width/DPR,H=canvas.height/DPR;ghost.st='captured';jar.fly={x:ghost.x,y:ghost.y,t:0};}
-function jarRelease(){jar.released=true;jar.lid=0;jar.glow=1;}
-function drawJar(ctx,W,H,dt){const g=jarGeom(W,H);jar.rattle=Math.max(0,jar.rattle-dt);jar.glow=Math.max(0,jar.glow-dt*0.5);
- if(jar.count>=7&&!jar.released&&Math.random()<0.01)jar.rattle=0.5;
- const rx=jar.rattle>0?(Math.random()-0.5)*6:0;ctx.save();ctx.translate(g.x+rx,g.y);
- if(jar.count>=8||jar.glow>0){const r=ctx.createRadialGradient(0,-g.h*0.5,0,0,-g.h*0.5,g.h);r.addColorStop(0,'rgba(124,255,74,'+(0.35+0.3*jar.glow)+')');r.addColorStop(1,'rgba(124,255,74,0)');ctx.fillStyle=r;ctx.fillRect(-g.h,-g.h*1.6,g.h*2,g.h*2);}
- ctx.fillStyle='rgba(190,230,210,0.22)';ctx.strokeStyle='rgba(220,240,230,0.7)';ctx.lineWidth=2;rrPath(ctx,-g.w/2,-g.h,g.w,g.h,g.w*0.25);ctx.fill();ctx.stroke();
- for(let i=0;i<jar.count;i++){const px=-g.w*0.3+((i*37)%(g.w*0.6)),py=-g.h*0.15-((i*53)%(g.h*0.6))+Math.sin(now*2+i)*3;ctx.fillStyle='rgba(235,232,225,0.85)';ctx.beginPath();ctx.arc(px,py,g.w*0.12,0,TAU);ctx.fill();ctx.fillStyle=HUNT.stations[i]?HUNT.stations[i].accent:'#fff';ctx.beginPath();ctx.arc(px+g.w*0.08,py,g.w*0.04,0,TAU);ctx.fill();}
- ctx.fillStyle='#6b4a2a';ctx.strokeStyle='rgba(0,0,0,0.4)';const ly=-g.h-g.h*0.08*(1-jar.lid)*4;rrPath(ctx,-g.w*0.55,ly-g.h*0.08,g.w*1.1,g.h*0.1,4);ctx.fill();ctx.stroke();
- ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font=Math.round(g.h*0.16)+'px Georgia';ctx.textAlign='center';ctx.fillText(jar.count+' / 8',0,g.h*0.22);ctx.restore();
- if(jar.fly){const f=jar.fly;f.t+=dt;const u=Math.min(1,f.t/0.9),e=easeIO(u);ghost.x=lerp(f.x,g.x,e);ghost.y=lerp(f.y,g.y-g.h*1.05,e)-Math.sin(u*Math.PI)*H*0.08;ghost.sx=1-0.5*u;ghost.sy=1+0.6*Math.sin(u*Math.PI);ghost.alpha=1-u*0.6;
-  ctx.strokeStyle='rgba(124,255,74,0.6)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(f.x,f.y);ctx.quadraticCurveTo((f.x+g.x)/2,Math.min(f.y,g.y)-H*0.12,ghost.x,ghost.y);ctx.stroke();
-  if(u>=1){jar.fly=null;ghost.st='gone';jar.count++;jar.rattle=0.6;jar.lid=1;shake();haptic(60);}}}
+// ghost + jar live in actors.js
 
 // ---------- fx: shake + haptics ----------
 function shake(){const el=$('shake');el.classList.remove('on');void el.offsetWidth;el.classList.add('on');}
@@ -161,8 +116,8 @@ async function onCorrect(){if(hunt.busy||hunt.state!=='STATION')return;const s=H
  anim.play('surprised');await waitSec(0.3);await say('correct_0'+s.n,s.capture,{mood:'happy'});
  if(!jar.fly&&ghost.st!=='gone')jarCapture();while(ghost.st!=='gone')await waitSec(0.05);await waitSec(0.4);$('scanwin').classList.remove('pulse');
  if(hunt.step>=7){await runFinale();return;}hunt.step++;hunt.busy=false;await runClue();}
-async function onWrong(){if(hunt.busy||hunt.state!=='STATION')return;hunt.busy=true;const i=hunt.wrongIdx;hunt.wrongIdx=(i+1)%3;ghost.st='idle';await say('wrong_'+(i+1),HUNT.wrong[i],{mood:'suspicious'});hunt.busy=false;}
-async function runFinale(){setState('FINALE');hunt.busy=true;$('scanner').classList.remove('show');anim.play('celebrating');await say('final',HUNT.final,{mood:'happy'});await anim.play('laughing');setState('DONE');hunt.done=true;save({done:true});$('final').classList.add('show');}
+async function onWrong(){if(hunt.busy||hunt.state!=='STATION')return;hunt.busy=true;const i=hunt.wrongIdx;hunt.wrongIdx=(i+1)%3;ghost.st='idle';ghostNotice();await say('wrong_'+(i+1),HUNT.wrong[i],{mood:'suspicious'});hunt.busy=false;}
+async function runFinale(){setState('FINALE');hunt.busy=true;$('scanner').classList.remove('show');anim.play('celebrating');await say('final',HUNT.final,{mood:'happy'});if(!jar.released)jarRelease();await anim.play('laughing');setState('DONE');hunt.done=true;save({done:true});$('final').classList.add('show');}
 
 // ---------- scanner ----------
 let scanning=false,lastScan='',lastScanAt=-9;
@@ -179,7 +134,7 @@ let wl=null;async function wakeLock(){try{if('wakeLock' in navigator){wl=await n
 
 // ---------- start / resume / close ----------
 const saved=load();if(saved&&!saved.done&&saved.step>0)$('resumebtn').style.display='';
-async function begin(resume){audioUnlock();wakeLock();$('startbtn').textContent='Waking Agatha…';try{if(!ART.on){await loadCues('assets/cues',['opening','final','wrong_1','wrong_2','wrong_3',...Array.from({length:8},(_,i)=>'clue_0'+(i+1)),...Array.from({length:8},(_,i)=>'correct_0'+(i+1))]);await loadPaintedFrom('assets/witch');}}catch(e){hlog('PAINTED ART FAILED: '+(e&&e.message||e));artError=String(e&&e.message||e);}$('start').classList.remove('show');if(resume&&saved){hunt.step=saved.step;jar.count=saved.count||0;$('hud').classList.add('show');$('scanner').classList.add('show');runClue();}else{clearSave();runOpening();}}
+async function begin(resume){audioUnlock();wakeLock();$('startbtn').textContent='Waking Agatha…';try{if(!ART.on){await loadCues('assets/cues',['opening','final','wrong_1','wrong_2','wrong_3',...Array.from({length:8},(_,i)=>'clue_0'+(i+1)),...Array.from({length:8},(_,i)=>'correct_0'+(i+1))]);await loadPaintedFrom('assets/witch');}await loadGhostArt('assets/ghosts');}catch(e){hlog('PAINTED ART FAILED: '+(e&&e.message||e));artError=String(e&&e.message||e);}$('start').classList.remove('show');if(resume&&saved){hunt.step=saved.step;jar.count=saved.count||0;$('hud').classList.add('show');$('scanner').classList.add('show');runClue();}else{clearSave();runOpening();}}
 $('startbtn').onclick=()=>begin(false);$('resumebtn').onclick=()=>begin(true);
 $('replay').onclick=()=>{if(hunt.busy)return;const s=HUNT.stations[hunt.step];if(hunt.state==='STATION')say('clue_0'+s.n,s.clue,{mood:'suspicious'});};
 $('closebtn').onclick=()=>{save({done:true});window.close();$('final').querySelector('.card').innerHTML='<h2>All done</h2><div class="big">You can close this tab now.</div>';};

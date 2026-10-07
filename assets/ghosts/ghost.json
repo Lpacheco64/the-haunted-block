@@ -1,0 +1,23 @@
+{
+ "props": {
+  "mustard": "props/hotdog.png",
+  "snacker": "props/fork.png",
+  "browser": "props/tag.png",
+  "reader": "props/book.png",
+  "nibbler": "props/cheese.png",
+  "groundskeeper": "props/mower.png",
+  "diva": "props/mic.png",
+  "boss": "props/clipboard.png"
+ },
+ "body": "body.png",
+ "eyes": {
+  "y": 0.31,
+  "dx": 0.045,
+  "r": 0.034,
+  "cx": -0.02,
+  "veil": 0.3
+ },
+ "lidColor": "rgb(230,213,198)",
+ "bodyHeight": 1.35,
+ "propScale": 0.62
+}
