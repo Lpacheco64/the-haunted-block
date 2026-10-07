@@ -539,7 +539,7 @@ function lipPathPainted(ctx,Mo,extra){const P=Mo.pts,x0=P[0][0],x1=P[P.length-1]
  const N=24;for(let i=N;i>=0;i--){const x=x0+(x1-x0)*i/N;let y=P[0][1];for(let j=1;j<P.length;j++){if(x<=P[j][0]){const a=P[j-1],b=P[j];y=a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);break;}else if(j===P.length-1)y=b===undefined?P[j][1]:P[j][1];}
   ctx.lineTo(x,y+extra*prof(x)+(extra>0?2:0));}
  ctx.closePath();}
-let JAWCOLS=null;
+let JAWCOLS=null;const JSTRIP=2;
 function buildJawCols(){const L=RASTER['w-jaw'],src=L.src,sw=src.width,sh=src.height,fL=0.2,fR=0.2,fade=Math.round(sw*0.06);
  const mk=(x0,x1,fadeL,fadeR)=>{const c=document.createElement('canvas');c.width=x1-x0;c.height=sh;const x=c.getContext('2d');x.drawImage(src,x0,0,x1-x0,sh,0,0,x1-x0,sh);
   if(!fadeL&&!fadeR)return c;const y0=Math.round(sh*0.42),m=document.createElement('canvas');m.width=c.width;m.height=sh;const mx=m.getContext('2d');mx.fillStyle='#000';mx.fillRect(0,0,c.width,y0);   // lip zone opaque
@@ -548,13 +548,17 @@ function buildJawCols(){const L=RASTER['w-jaw'],src=L.src,sw=src.width,sh=src.he
  const xL=Math.round(sw*fL),xR=Math.round(sw*(1-fR));
  const topRow=c=>{const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;for(let y=0;y<c.height;y++){for(let x=0;x<c.width;x++)if(d[(y*c.width+x)*4+3]>40)return y;}return 0;};
  const left=mk(0,xL+fade,false,true),mid=mk(xL,xR,false,false),right=mk(xR-fade,sw,true,false);
- JAWCOLS={left,mid,right,xL,xR,fade,sw,sh,topL:topRow(left),topR:topRow(right)};}
-function drawJawStretched(ctx,P){const L=RASTER['w-jaw'];if(!JAWCOLS)buildJawCols();const J=JAWCOLS,drop=P['jaw.drop']*ART.jawTravel,[rx,ry,rw,rh]=L.rig,k=rw/J.sw;
- ctx.drawImage(J.mid,rx+J.xL*k,ry+drop,J.mid.width*k,rh);                 // lips + chin, dropped (opaque)
- // jowls: anchor the stretch at each column's own visible top edge so the lip line never pulls away from the head
- const tL=J.topL,tR=J.topR;
- ctx.drawImage(J.left,0,tL,J.left.width,J.sh-tL,rx,ry+tL*k,J.left.width*k,(J.sh-tL)*k+drop);
- ctx.drawImage(J.right,0,tR,J.right.width,J.sh-tR,rx+(J.xR-J.fade)*k,ry+tR*k,J.right.width*k,(J.sh-tR)*k+drop);
+ JAWCOLS={src,left,mid,right,xL,xR,fade,sw,sh,topL:topRow(left),topR:topRow(right)};}
+function drawJawStretched(ctx,P){const L=RASTER['w-jaw'];if(!JAWCOLS)buildJawCols();const J=JAWCOLS,drop=P['jaw.drop']*ART.jawTravel,[rx,ry,rw,rh]=L.rig,k=rw/J.sw,Mo=ART.mouth;
+ // Continuous warp: every 4px strip of the jaw moves by its own amount. Top edge follows the lens profile (0 at the mouth corners, full in the middle),
+ // the bottom (chin/jawline) follows a broader profile, so there are no column seams anywhere.
+ if(!J.tops){const x=J.src.getContext('2d'),d=x.getImageData(0,0,J.sw,J.sh).data;J.tops=[];for(let sx=0;sx<J.sw;sx+=JSTRIP){let t=J.sh-1;for(let y=0;y<J.sh&&t===J.sh-1;y++){for(let xx=sx;xx<Math.min(J.sw,sx+JSTRIP);xx++)if(d[(y*J.sw+xx)*4+3]>40){t=y;break;}}J.tops.push(t);}}
+ const cl=Mo.cl[0],cr=Mo.cr[0],ss=(e0,e1,v)=>{const q=clamp((v-e0)/(e1-e0),0,1);return q*q*(3-2*q);};
+ for(let n=0,sx=0;sx<J.sw;sx+=JSTRIP,n++){const w=Math.min(JSTRIP,J.sw-sx),cx=rx+(sx+w/2)*k,t=(cx-cl)/(cr-cl);
+  const a=t>0&&t<1?Math.pow(Math.sin(Math.PI*t),0.6):0;
+  const u=(cx-rx)/rw,bb=0.35+0.65*ss(0.0,0.45,u)*ss(0.0,0.45,1-u)*1.0+0*u;   // bottom edge: full drop in the middle, easing to 35% at the ends
+  const top=J.tops[n],dy=ry+top*k+drop*a,dh=(J.sh-top)*k+drop*(Math.min(1,bb)-a);
+  if(dh<=0)continue;ctx.drawImage(J.src,sx,top,w,J.sh-top,rx+sx*k,dy,w*k+0.8,dh);}
 }
 function drawMouthPlate(ctx,P){const Mo=ART.mouth,K=MOUTHKIT.pieces;if(!Mo.cl)return;const drop=P['jaw.drop']*ART.jawTravel;if(drop<3)return;ctx.save();lipPathPainted(ctx,Mo,drop+16);ctx.clip();if(!JAWCOLS&&RASTER['w-jaw'])buildJawCols();if(JAWCOLS){const L=RASTER['w-jaw'],k=L.rig[2]/JAWCOLS.sw,x0=L.rig[0]+JAWCOLS.xL*k,x1=L.rig[0]+JAWCOLS.xR*k;ctx.beginPath();ctx.rect(x0,Mo.cl[1]-20,x1-x0,ART.jawTravel+80);ctx.clip();}
  ctx.drawImage(K.interior,Mo.cl[0]-14,Mo.cl[1]-6,(Mo.cr[0]-Mo.cl[0])+28,ART.jawTravel+60);ctx.restore();}

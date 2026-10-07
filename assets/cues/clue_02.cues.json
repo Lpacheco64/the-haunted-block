@@ -3,7 +3,7 @@
  "mood": "suspicious",
  "cues": [
   {
-   "at": "climb up to eat",
+   "at": "bottom of the stairs",
    "t": null,
    "do": "look:up"
   },
