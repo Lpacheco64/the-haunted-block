@@ -390,6 +390,35 @@ class Animator{
     if(lv-sp.pv>0.35&&sp.t-sp.lastPeak>0.35){sp.lastPeak=sp.t;sp.emph=1;}sp.pv=lerp(sp.pv,lv,0.5);sp.emph=Math.max(0,sp.emph-dt/0.25);
     if(!locks.mouth){out['mouth.shape']=sp.shape||set.closed;out['mouth.open']=lv;out['jaw.scale']=0.5+0.5*lv;}
     out['head.rot']+=-2*sp.emph;out['brow.L.raise']+=0.25*sp.emph;out['brow.R.raise']+=0.25*sp.emph;}}
+  // ---- liveliness: continuous cartoon secondary motion + random idle gags (additive; calmer while a scripted action runs) ----
+  {const amp=(this.action?0.35:1)*(this.live==null?1:this.live),sp3=this.speech,lvl=sp3?clamp(sp3.pv*1.6,0,1):0,em=sp3?sp3.emph:0,st=sp3?sp3.t:t,sn=(f,ph)=>Math.sin(t*f+(ph||0)),pos=x=>x>0?x:0;
+   out['body.rot']+=amp*(1.5*sn(0.7,2)+0.5*sn(1.9));out['body.x']+=amp*3*sn(0.55);out['body.y']+=amp*2.5*sn(1.6);
+   out['body.squash']+=amp*(0.03*sn(2.4)+em*0.12);out['body.hunch']+=amp*0.06*sn(0.8);
+   out['head.rot']+=amp*(2.4*sn(0.9)+1*sn(2.1,1))+(sp3?4*Math.sin(st*4.1)*lvl+(-3)*em:0);
+   out['head.x']+=amp*(4*sn(0.7,1)+(sp3?5*Math.sin(st*2.6)*lvl:0));out['head.y']+=amp*3*sn(1.5)+(sp3?-12*em+3*lvl*Math.sin(st*7):0);
+   out['head.pitch']+=amp*0.1*sn(0.6,1)+(sp3?0.18*Math.sin(st*3.3)*lvl:0);out['head.yaw']+=amp*0.1*sn(0.45);
+   out['brow.L.raise']+=amp*0.3*Math.pow(pos(sn(0.9)),3)+(sp3?0.3*lvl*pos(Math.sin(st*5.3)):0);out['brow.R.raise']+=amp*0.3*Math.pow(pos(sn(1.1,2)),3)+(sp3?0.3*lvl*pos(Math.sin(st*4.7+1)):0);
+   out['brow.L.angle']+=amp*3*sn(0.8,1);out['brow.R.angle']+=amp*3*sn(0.7,3);
+   out['nose.rot']+=amp*(1.4*sn(3.1)+7*Math.pow(pos(sn(0.33)),10)*sn(19));
+   out['arm.L.shoulder']+=amp*(5*sn(0.9,1)+4*sn(2.3))+(sp3?28*lvl*(0.5+0.5*Math.sin(st*2.3)):0);out['arm.L.elbow']+=amp*4*sn(1.1)+(sp3?-18*lvl*(0.5+0.5*Math.sin(st*2.3+1)):0);
+   out['arm.R.shoulder']+=amp*(3*sn(0.8)+2*sn(2.7))+(sp3?9*lvl*Math.sin(st*2.9):0);out['arm.R.elbow']+=amp*3*sn(1.3,2);
+   out['hat.lift']+=amp*3*pos(sn(1.2))+8*em;out['hat.squash']+=amp*0.012*sn(1.4)-0.045*em;
+   const tap=clamp((sn(0.22)-0.5)*4,0,1);out['leg.L.rot']+=amp*(tap*7*pos(Math.sin(t*7.5)));out['leg.R.rot']+=amp*(2*sn(0.5)+tap*0);
+   out['flask.glow']+=amp*0.5*Math.pow(pos(sn(0.45)),2);
+   out['eye.L.size']+=amp*0.015*sn(1.7);out['eye.R.size']+=amp*0.015*sn(1.7,1);
+   // random idle gags: only when nothing scripted is happening
+   const g=this.gag;
+   if(!g&&!this.action&&!sp3&&(this.mood==='neutral'||this.mood==='happy')&&t>=(this.nextGag==null?(this.nextGag=t+4):this.nextGag)){const ids=['doubletake','shiver','hop','hatwiggle','sniff','shrug','peek'];let id;do{id=ids[Math.floor(rng()*ids.length)];}while(id===this.lastGag);this.lastGag=id;this.gag={id,t0:t,dur:{doubletake:1.5,shiver:1.0,hop:0.8,hatwiggle:1.3,sniff:1.3,shrug:1.2,peek:1.8}[id]};this.nextGag=t+5+rng()*5;this.log('gag '+id);}
+   const G=this.gag;if(G){if(this.action||sp3){this.gag=null;}else{const u=(t-G.t0)/G.dur;if(u>=1)this.gag=null;else{const e=Math.sin(Math.PI*u),w=Math.sin(u*TAU);
+    if(G.id==='doubletake'){out['head.rot']+=-7*e*(u<0.5?1:-0.6)*1;out['head.yaw']+=(u<0.4?-0.5:0.5)*e;out['eye.scale']=lerp(out['eye.scale'],1.12,e);out['brow.L.raise']+=e;out['brow.R.raise']+=e;out['head.y']+=-14*e;}
+    else if(G.id==='shiver'){const sh=e*Math.sin(t*55);out['head.x']+=4*sh;out['body.rot']+=1.5*sh;out['brow.L.angle']+=8*e;out['brow.R.angle']+=8*e;out['arm.L.shoulder']+=6*sh;}
+    else if(G.id==='hop'){const a=u<0.2?u/0.2:0;out['body.squash']+=0.25*a*(1-a*0.2)+(u>0.75?0.2*Math.sin((u-0.75)/0.25*Math.PI):0)-0.18*(u>0.2&&u<0.75?e:0);out['body.y']+=-45*(u>0.2&&u<0.8?Math.sin((u-0.2)/0.6*Math.PI):0);out['arm.L.shoulder']+=30*e;out['arm.R.shoulder']+=18*e;out['hat.lift']+=10*e;}
+    else if(G.id==='hatwiggle'){out['hat.lift']+=16*e;out['hat.squash']+=0.05*Math.sin(u*TAU*3)*e;out['head.rot']+=3*Math.sin(u*TAU*2)*e;out['brow.L.raise']+=0.6*e;out['brow.R.raise']+=0.6*e;}
+    else if(G.id==='sniff'){out['nose.rot']+=9*Math.sin(u*TAU*4)*e;out['head.pitch']+=-0.35*e;out['head.y']+=-6*e;out['body.squash']+=-0.05*e*Math.abs(Math.sin(u*TAU*2));}
+    else if(G.id==='shrug'){out['arm.L.shoulder']+=20*e;out['arm.R.shoulder']+=12*e;out['head.rot']+=6*e;out['brow.L.raise']+=0.7*e;out['brow.R.raise']+=0.2*e;out['body.hunch']+=-0.2*e;out['body.y']+=-10*e;}
+    else if(G.id==='peek'){out['head.yaw']+=0.9*Math.sin(u*TAU)*(u<0.5?1:1);out['head.rot']+=-5*Math.sin(u*TAU);out['brow.L.angle']+=-10*e;out['brow.R.angle']+=-10*e;out['eye.squint']=lerp(out['eye.squint'],0.5,e);}
+   }}}
+  }
   for(const p in this.pins)if(p in out)out[p]=this.pins[p];
   // jaw derived from mouth shape
   out['jaw.drop']=(MOUTH[out['mouth.shape']]||MOUTH.neutral).jaw*out['jaw.scale'];
@@ -489,7 +518,7 @@ function applyArtFit(){const L=PAINTED.landmarks,set=(id,px)=>{if(NODE[id])NODE[
  set('w-arm-L-upper',L.shoulderL);set('w-arm-L-fore',L.elbowL);set('w-hand-L',L.wristL);set('w-arm-R-upper',L.shoulderR);set('w-arm-R-fore',L.elbowR);set('w-hand-R',L.wristR);set('w-flask',L.wristR);set('w-flask-mouth',L.flask_mouth);
  set('w-leg-L',L.kneeL);set('w-leg-R',L.kneeR);set('w-mount-frog',[470,990]);set('w-shadow',[L.neck[0],L.ground]);
  const eL=R(L.eyeL[0],L.eyeL[1]),eR=R(L.eyeR[0],L.eyeR[1]);ART.eyeL=[eL[0],eL[1],Ru(L.eyeL[2])];ART.eyeR=[eR[0],eR[1],Ru(L.eyeR[2])];
- const m=R(L.mouth.x,L.mouth.top);ART.mouth={x:m[0],top:m[1],scale:Ru(L.mouth.w)/230,cl:R(548,796),cr:R(790,815),mid:R(700,846),pts:PAINTED.lip.map(q=>R(q[0],q[1]))};ART.jawTravel=Ru(150);ART.lidCols={"L": {"mid": "#7a6947", "dark": "#554831", "light": "#a89379"}, "R": {"mid": "#796743", "dark": "#5c4d2f", "light": "#b3976d"}};const tt=PAINTED.manifest['mouth-teeth-top'];ART.toothRect=[...R(tt.x,tt.y),Ru(tt.w),Ru(tt.h)];
+ const m=R(L.mouth.x,L.mouth.top);ART.mouth={x:m[0],top:m[1],scale:Ru(L.mouth.w)/230,cl:R(540,810),cr:R(775,822),mid:R(700,855),pts:PAINTED.lip.map(q=>R(q[0],q[1]))};ART.jawTravel=Ru(150);ART.lidCols={"L": {"mid": "#7a6947", "dark": "#554831", "light": "#a89379"}, "R": {"mid": "#796743", "dark": "#5c4d2f", "light": "#b3976d"}};const tt=PAINTED.manifest['mouth-teeth-top'];ART.toothRect=[...R(tt.x,tt.y),Ru(tt.w),Ru(tt.h)];
  Object.assign(A,PAINTED.skin);PARALLAX.x=24;PARALLAX.y=14;NODE['w-nose'].depth=0.55;NODE['w-eye-L'].depth=0.35;NODE['w-eye-R'].depth=0.35;NODE['w-brow-L'].depth=0.4;NODE['w-brow-R'].depth=0.4;NODE['w-mouth'].depth=0.3;NODE['w-jaw'].depth=0.25;}
 // hands draw under the cuffs with painted art
 function drawEyePainted(ctx,P,side,cx,cy,r0){const s='eye.'+side,r=r0*P[s+'.size']*P['eye.scale'],sg=side==='L'?1:-1,ball=side==='L'?EYEKIT.ballL:EYEKIT.ballR,HB=RASTER['w-head-base'];

@@ -95,7 +95,7 @@ function drawGhost(ctx,W,H,dt){
   if(ghost.st==='gone'||ghost.st==='captured')return;                 // captured ghosts are drawn by the jar (in front of it)
   ghost.t+=dt;ghost.appear=Math.min(1,ghost.appear+dt/0.7);ghost.notice=Math.max(0,ghost.notice-dt);
   const size=H*GSIZE,[hx,hy]=ghostHome(W,H),T=ghost.t,id=s.ghost,tr=GTRAITS[id]||{lid:0.3};
-  const o=ghostIdle(id,T);let look=[o.gx,o.gy],lid=Math.min(0.85,tr.lid+o.lidAdd),jx=0,jy=0;
+  const o=ghostIdle(id,T);o.rot=(o.rot||0)+0.05*Math.sin(T*1.6+1);o.dy=(o.dy||0)+0.025*Math.sin(T*2.3);o.sx=(o.sx||1)*(1+0.02*Math.sin(T*2.9));o.sy=(o.sy||1)*(1-0.02*Math.sin(T*2.9));let look=[o.gx,o.gy],lid=Math.min(0.85,tr.lid+o.lidAdd),jx=0,jy=0;
   if(ghost.notice>0){look=[-0.7,0.5];lid=Math.max(0,lid-0.3);jy=-Math.sin(Math.min(1,(1.4-ghost.notice)/0.25)*Math.PI)*0.06;}   // a wrong scan: it peeks at the witch, startled
   ghost.x=Math.min(hx+o.dx*size+jx*size,W-size*0.62);ghost.y=hy+(o.dy+jy)*size;ghost.sx=o.sx;ghost.sy=o.sy;ghost.size=size;
   const k=ghost.appear<1?easeOutBack(ghost.appear):1;ghost.alpha=Math.min(1,ghost.appear*2);
