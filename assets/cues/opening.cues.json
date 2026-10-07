@@ -13,9 +13,14 @@
    "do": "mood:happy"
   },
   {
+   "at": "PERFECT timing",
+   "t": null,
+   "do": "play:hop"
+  },
+  {
    "at": "Some FOOL",
    "t": null,
-   "do": "play:surprised"
+   "do": "play:point"
   },
   {
    "at": "eight spirits are loose",
@@ -23,9 +28,19 @@
    "do": "look:wander"
   },
   {
+   "at": "eight spirits are loose",
+   "t": null,
+   "do": "play:flourish"
+  },
+  {
    "at": "three hundred years old",
    "t": null,
    "do": "mood:suspicious"
+  },
+  {
+   "at": "three hundred years old",
+   "t": null,
+   "do": "play:wobble"
   },
   {
    "at": "YOU'RE",
@@ -33,14 +48,29 @@
    "do": "look:player"
   },
   {
+   "at": "YOU'RE",
+   "t": null,
+   "do": "play:point"
+  },
+  {
    "at": "scan my magic circle",
    "t": null,
    "do": "look:scanner"
   },
   {
+   "at": "scan my magic circle",
+   "t": null,
+   "do": "play:flourish"
+  },
+  {
    "at": "First ghost",
    "t": null,
    "do": "mood:suspicious"
+  },
+  {
+   "at": "First ghost",
+   "t": null,
+   "do": "play:hop"
   }
  ]
 }

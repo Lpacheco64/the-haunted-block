@@ -115,7 +115,7 @@ document.addEventListener('visibilitychange',()=>{hidden=document.hidden;if(!hid
 
 // ---------- director: the sequences ----------
 function setState(s){hunt.state=s;hlog('→ '+s);}
-async function runOpening(){setState('OPENING');hunt.busy=true;$('hud').classList.add('show');$('scanner').classList.add('show');stationLabel();await anim.play('surprised');await say('opening',HUNT.opening,{mood:'suspicious'});await waitSec(0.4);hunt.busy=false;await runClue();}
+async function runOpening(){setState('OPENING');hunt.busy=true;$('hud').classList.add('show');$('scanner').classList.add('show');stationLabel();anim.big=true;await anim.play('hop');await say('opening',HUNT.opening,{mood:'suspicious'});anim.big=false;await waitSec(0.4);hunt.busy=false;await runClue();}
 async function runClue(){const s=HUNT.stations[hunt.step];setState('STATION');sceneCol=s.color;ghost.st='idle';ghost.t=0;stationLabel();hunt.busy=true;await say('clue_0'+s.n,s.clue,{mood:'suspicious'});anim.lookAt('down');hunt.busy=false;save({step:hunt.step,count:jar.count});}
 async function onCorrect(){if(hunt.busy||hunt.state!=='STATION')return;const s=HUNT.stations[hunt.step];setState('CAPTURING');hunt.busy=true;$('scanwin').classList.add('pulse');haptic(30);
  anim.play('surprised');await waitSec(0.3);await say('correct_0'+s.n,s.capture,{mood:'happy'});
