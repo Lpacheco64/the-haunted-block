@@ -72,7 +72,12 @@ function applyCue(c){const [k,a]=(c.do||'').split(':');if(k==='mood')anim.setMoo
 // ---------- HUD ----------
 const $=id=>document.getElementById(id);
 let capChunks=null,capHidden=false;
-function chunkText(t){const parts=t.replace(/\s+/g,' ').match(/[^.!?…]+[.!?…]+(\s|$)|[^.!?…]+$/g)||[t];const out=[];let cur='';for(const p of parts){if((cur+p).length>95&&cur){out.push(cur.trim());cur=p;}else cur+=p;}if(cur.trim())out.push(cur.trim());return out;}
+function chunkText(t){const MAX=76;const sentences=t.replace(/\s+/g,' ').trim().match(/[^.!?…]+[.!?…]+["')\]]*(\s|$)|[^.!?…]+$/g)||[t];
+ const split=x=>{x=x.trim();if(x.length<=MAX)return [x];const mid=x.length/2;let best=-1,bd=1e9;const re=/(— |, |; |: | and | so | but )/g;let m;while((m=re.exec(x))){const at=m.index+m[0].length-(m[0].endsWith(' ')&&m[0].length>1?0:0);const d=Math.abs(at-mid);if(at>12&&at<x.length-12&&d<bd){bd=d;best=at;}}
+  if(best<0){for(let k=0;k<x.length;k++){if(x[k]===' '){const d=Math.abs(k-mid);if(d<bd){bd=d;best=k+1;}}}}
+  if(best<0)return [x];return split(x.slice(0,best)).concat(split(x.slice(best)));};
+ const pieces=[];sentences.forEach(sn=>split(sn).forEach(x=>pieces.push(x)));
+ const out=[];let cur='';for(const p of pieces){if(cur&&(cur+' '+p).length>MAX){out.push(cur);cur=p;}else cur=cur?cur+' '+p:p;}if(cur)out.push(cur);return out;}
 function captionShow(t){capChunks=chunkText(t);const total=capChunks.reduce((a,c)=>a+c.length,0);let acc=0;capChunks=capChunks.map(c=>{const start=acc/total;acc+=c.length;return {text:c,start};});captionSet(0);if(!capHidden)$('caption').classList.add('show');}
 function captionSet(i){$('captext').textContent=capChunks[i].text;$('caption').dataset.i=i;$('capwho').textContent='🧪 Agatha Bramble'+(capChunks.length>1?'  ·  '+(i+1)+' / '+capChunks.length:'');}
 function captionTick(progress){if(!capChunks||capChunks.length<2)return;let i=0;for(let k=0;k<capChunks.length;k++)if(progress>=capChunks[k].start)i=k;if(String(i)!==$('caption').dataset.i)captionSet(i);}
