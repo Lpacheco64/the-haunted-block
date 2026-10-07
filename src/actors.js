@@ -28,7 +28,7 @@ function ghostIdle(id,T){
     case 'fuss':{o.rot=Math.sin(T*2.2)*0.1;o.dx=Math.sin(T*1.1)*0.05;o.gx=Math.sin(T*1.1)>0?0.6:-0.6;o.gy=-0.2;break;}
     case 'read':{o.gx=0;o.gy=0.75;o.rot=Math.sin(T*0.6)*0.03;if((T%4)<0.25)o.rot+=0.08;break;}
     case 'dart':{const steps=[-1,1,-0.4,0.8,0],i=Math.floor(T*1.3),f=(T*1.3)%1,e=Math.min(1,f*4);const cur=steps[i%5],prev=steps[(i+4)%5];o.dx=lerp(prev,cur,e)*0.2;o.gx=cur*0.7;o.gy=0;break;}
-    case 'mow':{o.dx=Math.sin(T*0.9)*0.45;o.rot=Math.cos(T*0.9)*0.05;o.gx=Math.cos(T*0.9)>0?0.6:-0.6;o.gy=0.2;break;}
+    case 'mow':{o.dx=(Math.sin(T*0.9)-1)*0.24;o.rot=Math.cos(T*0.9)*0.05;o.gx=Math.cos(T*0.9)>0?0.6:-0.6;o.gy=0.2;break;}
     case 'sway':{o.rot=Math.sin(T*0.7)*0.14;o.dy-=0.05;o.lidAdd=(Math.sin(T*0.8)>0.2)?0.4:0;o.gx=0;o.gy=-0.5;break;}
     case 'stamp':{const p=(T%2.6)/2.6,st=(p>0.55&&p<0.7)?Math.sin((p-0.55)/0.15*Math.PI):0;o.dy+=st*0.14;o.sy-=st*0.1;if(p>0.8){o.gx=0.7;o.gy=0.4;}else{o.gx=-0.3;o.gy=0.3;}break;}
   }
@@ -84,7 +84,8 @@ function drawGhostFigure(ctx,o){
 
 // ---------- the main ghost at the current station ----------
 const ghost={st:'idle',x:0,y:0,sx:1,sy:1,alpha:1,t:0,idx:-1,appear:1,notice:0,panic:0,size:0};
-function ghostHome(W,H){return [W*0.74,H*0.74-H*0.30];}
+const GSIZE=0.2;   // ghost size as a fraction of screen height (was 0.13; props scale with it)
+function ghostHome(W,H){return [W*0.73,H*0.74-H*0.30];}
 function ghostNotice(){ghost.notice=1.4;}
 function blinkAmt(seed,T){const ph=(T*0.31+seed/97)%1;return ph<0.035?Math.sin(ph/0.035*Math.PI):0;}
 const easeOutBack=t=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2);};
@@ -93,10 +94,10 @@ function drawGhost(ctx,W,H,dt){
   if(ghost.idx!==hunt.step){ghost.idx=hunt.step;ghost.appear=0;ghost.t=0;ghost.notice=0;ghost.panic=0;}
   if(ghost.st==='gone'||ghost.st==='captured')return;                 // captured ghosts are drawn by the jar (in front of it)
   ghost.t+=dt;ghost.appear=Math.min(1,ghost.appear+dt/0.7);ghost.notice=Math.max(0,ghost.notice-dt);
-  const size=H*0.13,[hx,hy]=ghostHome(W,H),T=ghost.t,id=s.ghost,tr=GTRAITS[id]||{lid:0.3};
+  const size=H*GSIZE,[hx,hy]=ghostHome(W,H),T=ghost.t,id=s.ghost,tr=GTRAITS[id]||{lid:0.3};
   const o=ghostIdle(id,T);let look=[o.gx,o.gy],lid=Math.min(0.85,tr.lid+o.lidAdd),jx=0,jy=0;
   if(ghost.notice>0){look=[-0.7,0.5];lid=Math.max(0,lid-0.3);jy=-Math.sin(Math.min(1,(1.4-ghost.notice)/0.25)*Math.PI)*0.06;}   // a wrong scan: it peeks at the witch, startled
-  ghost.x=hx+o.dx*size+jx*size;ghost.y=hy+(o.dy+jy)*size;ghost.sx=o.sx;ghost.sy=o.sy;ghost.size=size;
+  ghost.x=Math.min(hx+o.dx*size+jx*size,W-size*0.62);ghost.y=hy+(o.dy+jy)*size;ghost.sx=o.sx;ghost.sy=o.sy;ghost.size=size;
   const k=ghost.appear<1?easeOutBack(ghost.appear):1;ghost.alpha=Math.min(1,ghost.appear*2);
   // the diva brings her own spotlight
   if(id==='diva'){const g=ctx.createLinearGradient(0,ghost.y-H*0.5,0,ghost.y+size*0.5);g.addColorStop(0,'rgba(168,107,216,0.0)');g.addColorStop(1,'rgba(168,107,216,0.22)');ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(ghost.x-size*0.15,ghost.y-H*0.5);ctx.lineTo(ghost.x+size*0.15,ghost.y-H*0.5);ctx.lineTo(ghost.x+size*0.9,ghost.y+size*0.55);ctx.lineTo(ghost.x-size*0.9,ghost.y+size*0.55);ctx.closePath();ctx.fill();}
@@ -129,10 +130,10 @@ function drawJar(ctx,W,H,dt){
   if(f){f.t+=dt;
     if(f.phase==='panic'){ghost.panic=1;if(f.t>=0.35){f.phase='fly';f.t=0;}flyGhost={x:f.x0+(Math.random()-0.5)*6,y:f.y0,sx:1,sy:1,k:1,look:[0,0.3],lid:0,alpha:1};}
     else if(f.phase==='fly'){const u=Math.min(1,f.t/1.0),e=easeIO(u),cx=lerp(f.x0,mx,0.4),cy=Math.min(f.y0,my)-H*0.16,x=(1-e)*(1-e)*f.x0+2*(1-e)*e*cx+e*e*mx,y=(1-e)*(1-e)*f.y0+2*(1-e)*e*cy+e*e*my;
-      const mini=g.wb*0.3/(ghost.size||H*0.13);flyGhost={x,y,sx:1-0.35*Math.sin(Math.PI*u),sy:1+0.5*Math.sin(Math.PI*u),k:lerp(1,mini,e),look:[Math.cos(u*3)*0.5,-0.4],lid:0,alpha:1};
+      const mini=g.wb*0.3/(ghost.size||H*GSIZE);flyGhost={x,y,sx:1-0.35*Math.sin(Math.PI*u),sy:1+0.5*Math.sin(Math.PI*u),k:lerp(1,mini,e),look:[Math.cos(u*3)*0.5,-0.4],lid:0,alpha:1};
       f.trail.push([x,y]);if(f.trail.length>20)f.trail.shift();if(Math.random()<0.6)jarFx(x,y,1,'rgba(124,255,74,0.9)',60,0.6);
       if(u>=1){f.phase='drop';f.t=0;}}
-    else if(f.phase==='drop'){const u=Math.min(1,f.t/0.35),[sx,sy]=jarSlot(g,jar.count),x=mx+(g.x+sx-mx)*u,y=my+(g.y+sy-my)*u*u+Math.sin(u*Math.PI)*-4,mini=g.wb*0.3/(ghost.size||H*0.13);
+    else if(f.phase==='drop'){const u=Math.min(1,f.t/0.35),[sx,sy]=jarSlot(g,jar.count),x=mx+(g.x+sx-mx)*u,y=my+(g.y+sy-my)*u*u+Math.sin(u*Math.PI)*-4,mini=g.wb*0.3/(ghost.size||H*GSIZE);
       flyGhost={x,y,sx:1,sy:1,k:mini,look:[0,0.5],lid:0.1,alpha:1};
       if(u>=1){jar.fly=null;ghost.st='gone';ghost.panic=0;jar.count++;jar.closing=true;jarFx(mx,my,26,'rgba(124,255,74,0.9)',180,0.8);}}
     jar.lidTarget=1;}
@@ -177,14 +178,14 @@ function drawJar(ctx,W,H,dt){
   // flying ghost: drawn in front of the jar, with a green ribbon behind it
   if(f&&flyGhost){
     if(f.trail&&f.trail.length>2){ctx.save();ctx.lineCap='round';for(let i=1;i<f.trail.length;i++){const a=i/f.trail.length;ctx.strokeStyle='rgba(124,255,74,'+(0.55*a)+')';ctx.lineWidth=2+a*7;ctx.beginPath();ctx.moveTo(f.trail[i-1][0],f.trail[i-1][1]);ctx.lineTo(f.trail[i][0],f.trail[i][1]);ctx.stroke();}ctx.restore();}
-    const size=ghost.size||H*0.13,s=HUNT.stations[hunt.step];ctx.save();ctx.translate(flyGhost.x,flyGhost.y);ctx.scale(flyGhost.sx*flyGhost.k,flyGhost.sy*flyGhost.k);
+    const size=ghost.size||H*GSIZE,s=HUNT.stations[hunt.step];ctx.save();ctx.translate(flyGhost.x,flyGhost.y);ctx.scale(flyGhost.sx*flyGhost.k,flyGhost.sy*flyGhost.k);
     if(f.phase==='panic'){ctx.shadowColor='rgba(124,255,74,0.9)';ctx.shadowBlur=18;}
     drawGhostFigure(ctx,{size,T:ghost.t,station:s,look:flyGhost.look,lid:flyGhost.lid,blink:0});ctx.restore();}
   // finale: the lid has blown, the ghosts are out and partying
-  if(jar.released){for(const p of jar.party){p.t+=dt;const tx=W*(0.5+0.36*Math.cos(p.ph+p.t*p.r*3)),ty=H*(0.34+0.2*Math.sin(p.ph*1.7+p.t*p.r*2.3));
+  if(jar.released){for(const p of jar.party){p.t+=dt;const tx=W*(0.5+0.36*Math.cos(p.ph+p.t*p.r*3)),ty=H*(0.2+0.12*Math.sin(p.ph*1.7+p.t*p.r*2.3));
       p.vx+=((tx-p.x)*2.2-p.vx*1.4)*dt;p.vy+=((ty-p.y)*2.2-p.vy*1.4)*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
       ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.sin(p.t*2+p.ph)*0.2);ctx.shadowColor=p.st.accent;ctx.shadowBlur=12;
-      drawGhostFigure(ctx,{size:H*0.075,T:p.t+p.i,station:p.st,look:[0,0.15],lid:0.05,blink:blinkAmt(p.i*17,p.t),eyeBoost:1.35});ctx.restore();
+      drawGhostFigure(ctx,{size:H*0.095,T:p.t+p.i,station:p.st,look:[0,0.15],lid:0.05,blink:blinkAmt(p.i*17,p.t),eyeBoost:1.35});ctx.restore();
       if(Math.random()<0.15)jarFx(p.x,p.y+H*0.03,1,p.st.accent,40,0.8);}}
   // particles
   for(let i=jar.fx.length-1;i>=0;i--){const q=jar.fx[i];q.age+=dt;if(q.age>q.life){jar.fx.splice(i,1);continue;}q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=120*dt;ctx.globalAlpha=1-q.age/q.life;ctx.fillStyle=q.col;ctx.beginPath();ctx.arc(q.x,q.y,q.r*(1-q.age/q.life*0.5),0,TAU);ctx.fill();}
