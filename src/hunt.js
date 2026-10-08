@@ -98,18 +98,21 @@ for(let i=0;i<14;i++)flies.push({x:Math.random(),y:0.2+Math.random()*0.5,p:Math.
 let sceneCol='#2b2230',sceneTarget='#2b2230',sceneMix=1;
 // photo scenes: graded stills (assets/scenes), cover-fit anchored a little above centre so the landmark stays in the upper two-thirds,
 // slow breathing zoom, 0.8 s crossfade between stations, next station's photo preloaded while you walk.
+// ground: where the landmark meets the pavement, as a fraction of the photo's height; the photo is placed so that line sits just under Agatha's feet
+const SCENE_GROUND={"00-entrance-wide": 0.72, "01-hotdog": 0.9, "02-stairs": 0.7, "03-collective": 0.8, "04-bookstore": 0.82, "05-hive": 0.88, "06-grass": 0.74, "07-stage_1": 0.86, "08-office": 0.93};
 const SCENES={};function sceneLoad(url){if(!url)return null;if(!SCENES[url]){const im=new Image();im.decoding='async';im.src=url;SCENES[url]={im,ok:false};im.onload=()=>{SCENES[url].ok=true;};}return SCENES[url];}
 let sceneCur=null,scenePrev=null,sceneFade=1,sceneT=0;
 function sceneSet(url){if(url===sceneCur)return;scenePrev=sceneCur;sceneCur=url;sceneFade=0;sceneLoad(url);}
 function scenePreload(i){const s=HUNT.stations[i];if(s&&s.scene)sceneLoad(s.scene);}
-function drawPhoto(ctx,W,H,url,alpha,t){const S=url&&SCENES[url];if(!S||!S.ok)return false;const im=S.im,z=1.03+0.03*Math.sin(t*0.12),sc=Math.max(W/im.width,H/im.height)*z,w=im.width*sc,hh=im.height*sc;
- ctx.globalAlpha=alpha;ctx.drawImage(im,(W-w)/2+Math.sin(t*0.07)*W*0.01,(H-hh)*0.35,w,hh);ctx.globalAlpha=1;return true;}
+function drawPhoto(ctx,W,H,url,alpha,t){const S=url&&SCENES[url];if(!S||!S.ok)return false;const im=S.im,key=(url.match(/([^\/]+)\.jpg$/)||[])[1],g=SCENE_GROUND[key]||0.8,GY=H*0.76,z=1.02+0.02*Math.sin(t*0.12);
+ const sc=Math.max(W/im.width,GY/(g*im.height))*z,w=im.width*sc,hh=im.height*sc,x=(W-w)/2+Math.sin(t*0.07)*W*0.01,y=GY-g*hh;
+ ctx.globalAlpha=alpha;ctx.drawImage(im,x,y,w,hh);ctx.globalAlpha=1;return true;}
 function drawScene(ctx,W,H,dt){sceneT+=dt;ctx.fillStyle=sceneCol;ctx.fillRect(0,0,W,H);
  if(sceneFade<1)sceneFade=Math.min(1,sceneFade+dt/0.8);
  if(scenePrev&&sceneFade<1)drawPhoto(ctx,W,H,scenePrev,1,sceneT);
  if(sceneCur)drawPhoto(ctx,W,H,sceneCur,sceneFade<1?easeIO(sceneFade):1,sceneT);
  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(0,0,0,0.35)');g.addColorStop(0.55,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,0.5)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
- const gy=H*0.74;ctx.fillStyle='rgba(0,0,0,0.25)';ctx.fillRect(0,gy,W,H-gy);
+ const gy=H*0.74;const gg=ctx.createLinearGradient(0,gy-H*0.02,0,H);gg.addColorStop(0,'rgba(8,5,14,0)');gg.addColorStop(0.12,'rgba(8,5,14,0.55)');gg.addColorStop(1,'rgba(8,5,14,0.92)');ctx.fillStyle=gg;ctx.fillRect(0,gy-H*0.02,W,H-gy+H*0.02);
  for(const f of fog){f.x+=f.v*dt;if(f.x>1.3)f.x=-0.3;if(f.x<-0.3)f.x=1.3;const r=ctx.createRadialGradient(f.x*W,f.y*H,0,f.x*W,f.y*H,f.w*W*0.5);r.addColorStop(0,'rgba(200,210,200,'+f.a+')');r.addColorStop(1,'rgba(200,210,200,0)');ctx.fillStyle=r;ctx.fillRect(0,0,W,H);}
  for(const b of flies){b.p+=dt*b.s;const x=b.x*W+Math.sin(b.p)*18,y=b.y*H+Math.cos(b.p*0.7)*12,a=0.3+0.5*Math.abs(Math.sin(b.p*1.3));ctx.fillStyle='rgba(180,255,120,'+a+')';ctx.beginPath();ctx.arc(x,y,2.2,0,TAU);ctx.fill();}
  if(Math.random()<0.02){ctx.fillStyle='rgba(255,240,200,0.06)';ctx.fillRect(0,0,W,H);}}
