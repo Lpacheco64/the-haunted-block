@@ -54,13 +54,15 @@ function hlog(s){hunt.log.push(s);if(hunt.log.length>12)hunt.log.shift();}
 
 // ---------- audio (voice via Web Audio when a clip exists; synthetic fallback) ----------
 let ACTX=null,music=null,finaleAudio=null,finaleTarget=0;
-// music mix: background loop ducks under narration; the finale track fades in when the ghosts are released and the loop fades out
-function startFinaleMusic(){if(finaleAudio)return;try{const a=new Audio('assets/audio/finale.mp3');a.loop=true;a.volume=0;a.play().then(()=>{finaleAudio=a;finaleTarget=0.55;hunt.finaleMusic=true;}).catch(()=>{});}catch(e){}}
+// music: both tracks play through Web Audio (sample-accurate, gapless looping; <audio loop> leaves a click/gap at the mp3 seam).
+// The background loop ducks under narration; the finale track fades in when the ghosts are released and the loop fades out.
+function musicTrack(name,vol0){const t={gain:null,buf:null,src:null,vol:vol0,target:vol0,on:false};loadClip(name).then(buf=>{if(!buf||t.on)return;t.buf=buf;t.gain=ACTX.createGain();t.gain.gain.value=t.vol;t.gain.connect(ACTX.destination);const s=ACTX.createBufferSource();s.buffer=buf;s.loop=true;s.connect(t.gain);s.start();t.src=s;t.on=true;});return t;}
+function startFinaleMusic(){if(finaleAudio||!ACTX)return;finaleAudio=musicTrack('finale',0);finaleAudio.target=0.55;hunt.finaleMusic=true;}
 function audioMix(dt){const k=Math.min(1,dt*2.5),cl=v=>Math.max(0,Math.min(1,v));
- if(music){const tgt=hunt.finaleMusic?0:(anim.speech?0.15:0.35);music.volume=cl(music.volume+(tgt-music.volume)*k);}
- if(finaleAudio)finaleAudio.volume=cl(finaleAudio.volume+(finaleTarget-finaleAudio.volume)*k);}
+ if(music){music.target=hunt.finaleMusic?0:(anim.speech?0.15:0.35);music.vol=cl(music.vol+(music.target-music.vol)*k);if(music.gain)music.gain.gain.value=music.vol;}
+ if(finaleAudio){finaleAudio.vol=cl(finaleAudio.vol+(finaleAudio.target-finaleAudio.vol)*k);if(finaleAudio.gain)finaleAudio.gain.gain.value=finaleAudio.vol;}}
 function audioUnlock(){if(!ACTX){try{ACTX=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(ACTX&&ACTX.state==='suspended')ACTX.resume();
- if(!music){music=new Audio();music.loop=true;music.volume=0.35;music.src='assets/audio/bg_loop.mp3';music.play().catch(()=>{});}}
+ if(!music&&ACTX)music=musicTrack('bg_loop',0.35);}
 const clipCache={};
 async function loadClip(name){if(clipCache[name]!==undefined)return clipCache[name];let buf=null;try{const r=await fetch('assets/audio/'+name+'.mp3');if(r.ok&&ACTX)buf=await ACTX.decodeAudioData(await r.arrayBuffer());}catch(e){}clipCache[name]=buf;return buf;}
 // say(): returns when the line ends. Fires cue track; t null → position in text.
@@ -117,7 +119,7 @@ function render(P,dt){audioMix(dt);const W=canvas.width/DPR,H=canvas.height/DPR;
  ctx.setTransform(DPR,0,0,DPR,0,0);drawJar(ctx,W,H,dt);}
 const anim=new Animator();let P=defaults(),last=performance.now(),hidden=false;
 function loop(t){let dt=Math.min((t-last)/1000,0.05);last=t;if(!hidden){now+=dt;P=anim.update(dt);fxUpdate(dt,P);render(P,dt);tickWaiters();chatterTick();}devRefresh();requestAnimationFrame(loop);}
-document.addEventListener('visibilitychange',()=>{hidden=document.hidden;if(!hidden)last=performance.now();if(ACTX){if(hidden)ACTX.suspend();else ACTX.resume();}if(finaleAudio){if(hidden)finaleAudio.pause();else finaleAudio.play().catch(()=>{});}if(music){if(hidden)music.pause();else if(hunt.state!=='BOOT'&&hunt.state!=='START')music.play().catch(()=>{});}});
+document.addEventListener('visibilitychange',()=>{hidden=document.hidden;if(!hidden)last=performance.now();if(ACTX){if(hidden)ACTX.suspend();else ACTX.resume();}});
 
 // ---------- director: the sequences ----------
 function setState(s){hunt.state=s;hlog('→ '+s);}
