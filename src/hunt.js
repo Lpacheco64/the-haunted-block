@@ -7,28 +7,28 @@
 // ---------- content package (hunt.json inline for the artifact) ----------
 const HUNT={id:'haunted-block-2026',title:'The Block Is Haunted',
  stations:[
-  {n:1,code:'hb1',name:'Entry Hot Dog Stand',ghost:'mustard',accent:'#e4c33a',prop:'hotdog',color:'#2b2230',
+  {n:1,code:'hb1',scene:'assets/scenes/01-hotdog.jpg',name:'Entry Hot Dog Stand',ghost:'mustard',accent:'#e4c33a',prop:'hotdog',color:'#2b2230',
    clue:"He steals first bites where the hot dogs steam —\nRight where you walked in. Go make him scream.",
    capture:"GOTCHA! Into the jar, mustard-breath! …He brought a hot dog in with him. Fine."},
-  {n:2,code:'hb2',name:'Eatery by the Stairs',ghost:'snacker',accent:'#d84a3a',prop:'fork',color:'#24262f',
+  {n:2,code:'hb2',scene:'assets/scenes/02-stairs.jpg',name:'Eatery by the Stairs',ghost:'snacker',accent:'#d84a3a',prop:'fork',color:'#24262f',
    clue:"At the bottom of the stairs, where the hungry go to eat —\nDon't climb, that's the bar. Careful — she bites feet.",
    capture:"Caught her at the bottom of the stairs, mid-snack! In you go. Watch the feet, everyone."},
-  {n:3,code:'hb3',name:'The Block Collective',ghost:'browser',accent:'#3fb8b0',prop:'tag',color:'#2a2a24',
+  {n:3,code:'hb3',scene:'assets/scenes/03-collective.jpg',name:'The Block Collective',ghost:'browser',accent:'#3fb8b0',prop:'tag',color:'#2a2a24',
    clue:"Fifteen shops, one roof, and one ghost with a plan —\nShe's tidying the shelves. Catch her if you can.",
    capture:"The Browser! Fifteen shops will finally stay TIDY. Into the jar, shopaholic."},
-  {n:4,code:'hb4',name:'Bookstore',ghost:'reader',accent:'#e6dcc4',prop:'book',color:'#2c2420',
+  {n:4,code:'hb4',scene:'assets/scenes/04-bookstore.jpg',name:'Bookstore',ghost:'reader',accent:'#e6dcc4',prop:'book',color:'#2c2420',
    clue:"She shushes the shoppers and reads all night through —\nSlip between the bookshelves. She's waiting for you.",
    capture:"SHHH yourself! The Reader, captured — she's still holding the book. Let her."},
-  {n:5,code:'hb5',name:'Hive & Honey',ghost:'nibbler',accent:'#e0a526',prop:'cheese',color:'#2e2618',
+  {n:5,code:'hb5',scene:'assets/scenes/05-hive.jpg',name:'Hive & Honey',ghost:'nibbler',accent:'#e0a526',prop:'cheese',color:'#2e2618',
    clue:"Sweet as honey, sharp as cheese —\nHe's nibbling the charcuterie. Get him, please.",
    capture:"Got the Nibbler! …There's cheese in my jar now. Worth it. Moving on!"},
-  {n:6,code:'hb6',name:'The Grass',ghost:'groundskeeper',accent:'#6fbf4a',prop:'mower',color:'#1e2a1c',
+  {n:6,code:'hb6',scene:'assets/scenes/06-grass.jpg',name:'The Grass',ghost:'groundskeeper',accent:'#6fbf4a',prop:'mower',color:'#1e2a1c',
    clue:"He mows at midnight, though nothing needs mowing —\nStand out on the grass and you'll catch him going.",
    capture:"Snagged him mid-mow! The grass will survive without you. NEXT."},
-  {n:7,code:'hb7',name:'Main Stage',ghost:'diva',accent:'#a86bd8',prop:'mic',color:'#1c1826',
+  {n:7,code:'hb7',scene:'assets/scenes/07-stage_1.jpg',name:'Main Stage',ghost:'diva',accent:'#a86bd8',prop:'mic',color:'#1c1826',
    clue:"You'll hear her before you see her — that wail's no mistake.\nShe's been singing since 1987. Get to the stage, for pity's sake.",
    capture:"One FINAL encore — from inside the jar! Beautiful. Tragic. CAUGHT."},
-  {n:8,code:'hb8',name:'The Office',ghost:'boss',accent:'#4a6fd8',prop:'clipboard',color:'#1f2230',
+  {n:8,code:'hb8',scene:'assets/scenes/08-office.jpg',name:'The Office',ghost:'boss',accent:'#4a6fd8',prop:'clipboard',color:'#1f2230',
    clue:"The last one's the BOSS — she thinks she runs this place.\nMarch into the office and meet her face to face.",
    capture:"THE BOSS HERSELF! That's all EIGHT — oh, this jar is positively RATTLING…"}],
  opening:"Agatha Bramble, keeper of The Block's ghosts — at your service. And PERFECT timing. Some FOOL left my ghost jar open, and now eight spirits are loose all over The Block. The party can't start till they're back in this jar — and my knees are three hundred years old, so YOU'RE doing the walking. Find where each ghost hides, scan my magic circle, and I'll do the rest. First ghost — listen up.",
@@ -96,7 +96,18 @@ function stationLabel(){const s=HUNT.stations[hunt.step];$('station').textConten
 const fog=[],flies=[];for(let i=0;i<6;i++)fog.push({x:Math.random(),y:0.5+Math.random()*0.4,w:0.5+Math.random()*0.5,v:(0.01+Math.random()*0.02)*(i%2?1:-1),a:0.05+Math.random()*0.05});
 for(let i=0;i<14;i++)flies.push({x:Math.random(),y:0.2+Math.random()*0.5,p:Math.random()*TAU,s:0.6+Math.random()*0.8});
 let sceneCol='#2b2230',sceneTarget='#2b2230',sceneMix=1;
-function drawScene(ctx,W,H,dt){ctx.fillStyle=sceneCol;ctx.fillRect(0,0,W,H);
+// photo scenes: graded stills (assets/scenes), cover-fit anchored a little above centre so the landmark stays in the upper two-thirds,
+// slow breathing zoom, 0.8 s crossfade between stations, next station's photo preloaded while you walk.
+const SCENES={};function sceneLoad(url){if(!url)return null;if(!SCENES[url]){const im=new Image();im.decoding='async';im.src=url;SCENES[url]={im,ok:false};im.onload=()=>{SCENES[url].ok=true;};}return SCENES[url];}
+let sceneCur=null,scenePrev=null,sceneFade=1,sceneT=0;
+function sceneSet(url){if(url===sceneCur)return;scenePrev=sceneCur;sceneCur=url;sceneFade=0;sceneLoad(url);}
+function scenePreload(i){const s=HUNT.stations[i];if(s&&s.scene)sceneLoad(s.scene);}
+function drawPhoto(ctx,W,H,url,alpha,t){const S=url&&SCENES[url];if(!S||!S.ok)return false;const im=S.im,z=1.03+0.03*Math.sin(t*0.12),sc=Math.max(W/im.width,H/im.height)*z,w=im.width*sc,hh=im.height*sc;
+ ctx.globalAlpha=alpha;ctx.drawImage(im,(W-w)/2+Math.sin(t*0.07)*W*0.01,(H-hh)*0.35,w,hh);ctx.globalAlpha=1;return true;}
+function drawScene(ctx,W,H,dt){sceneT+=dt;ctx.fillStyle=sceneCol;ctx.fillRect(0,0,W,H);
+ if(sceneFade<1)sceneFade=Math.min(1,sceneFade+dt/0.8);
+ if(scenePrev&&sceneFade<1)drawPhoto(ctx,W,H,scenePrev,1,sceneT);
+ if(sceneCur)drawPhoto(ctx,W,H,sceneCur,sceneFade<1?easeIO(sceneFade):1,sceneT);
  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(0,0,0,0.35)');g.addColorStop(0.55,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,0.5)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
  const gy=H*0.74;ctx.fillStyle='rgba(0,0,0,0.25)';ctx.fillRect(0,gy,W,H-gy);
  for(const f of fog){f.x+=f.v*dt;if(f.x>1.3)f.x=-0.3;if(f.x<-0.3)f.x=1.3;const r=ctx.createRadialGradient(f.x*W,f.y*H,0,f.x*W,f.y*H,f.w*W*0.5);r.addColorStop(0,'rgba(200,210,200,'+f.a+')');r.addColorStop(1,'rgba(200,210,200,0)');ctx.fillStyle=r;ctx.fillRect(0,0,W,H);}
@@ -123,8 +134,8 @@ document.addEventListener('visibilitychange',()=>{hidden=document.hidden;if(!hid
 
 // ---------- director: the sequences ----------
 function setState(s){hunt.state=s;hlog('→ '+s);}
-async function runOpening(){setState('OPENING');hunt.busy=true;$('hud').classList.add('show');$('scanner').classList.add('show');stationLabel();anim.big=true;await anim.play('hop');await say('opening',HUNT.opening,{mood:'suspicious'});anim.big=false;await waitSec(0.4);hunt.busy=false;await runClue();}
-async function runClue(){const s=HUNT.stations[hunt.step];setState('STATION');if(hunt.step>0)haptic(20);sceneCol=s.color;ghost.st='idle';ghost.t=0;stationLabel();hunt.busy=true;await say('clue_0'+s.n,s.clue,{mood:'suspicious'});anim.lookAt('down');hunt.busy=false;save({step:hunt.step,count:jar.count});}
+async function runOpening(){setState('OPENING');sceneSet('assets/scenes/00-entrance-wide.jpg');scenePreload(0);hunt.busy=true;$('hud').classList.add('show');$('scanner').classList.add('show');stationLabel();anim.big=true;await anim.play('hop');await say('opening',HUNT.opening,{mood:'suspicious'});anim.big=false;await waitSec(0.4);hunt.busy=false;await runClue();}
+async function runClue(){const s=HUNT.stations[hunt.step];setState('STATION');if(hunt.step>0)haptic(20);sceneCol=s.color;sceneSet(s.scene);scenePreload(hunt.step+1);ghost.st='idle';ghost.t=0;stationLabel();hunt.busy=true;await say('clue_0'+s.n,s.clue,{mood:'suspicious'});anim.lookAt('down');hunt.busy=false;save({step:hunt.step,count:jar.count});}
 async function onCorrect(){if(hunt.busy||hunt.state!=='STATION')return;const s=HUNT.stations[hunt.step];setState('CAPTURING');hunt.busy=true;$('scanwin').classList.add('pulse');haptic(30);
  anim.play('surprised');await waitSec(0.3);await say('correct_0'+s.n,s.capture,{mood:'happy'});
  if(!jar.fly&&ghost.st!=='gone')jarCapture();while(ghost.st!=='gone')await waitSec(0.05);await waitSec(0.4);$('scanwin').classList.remove('pulse');
@@ -147,7 +158,7 @@ let wl=null;async function wakeLock(){try{if('wakeLock' in navigator){wl=await n
 
 // ---------- start / resume / close ----------
 const saved=load();if(saved&&!saved.done&&saved.step>0)$('resumebtn').style.display='';
-async function begin(resume){audioUnlock();wakeLock();$('startbtn').textContent='Waking Agatha…';try{if(!ART.on){await loadCues('assets/cues',['opening','final','wrong_1','wrong_2','wrong_3',...Array.from({length:8},(_,i)=>'clue_0'+(i+1)),...Array.from({length:8},(_,i)=>'correct_0'+(i+1))]);await loadPaintedFrom('assets/witch');}await loadGhostArt('assets/ghosts');}catch(e){hlog('PAINTED ART FAILED: '+(e&&e.message||e));artError=String(e&&e.message||e);}$('start').classList.remove('show');if(resume&&saved){hunt.step=saved.step;jar.count=saved.count||0;$('hud').classList.add('show');$('scanner').classList.add('show');runClue();}else{clearSave();runOpening();}}
+async function begin(resume){audioUnlock();wakeLock();sceneLoad('assets/scenes/00-entrance-wide.jpg');$('startbtn').textContent='Waking Agatha…';try{if(!ART.on){await loadCues('assets/cues',['opening','final','wrong_1','wrong_2','wrong_3',...Array.from({length:8},(_,i)=>'clue_0'+(i+1)),...Array.from({length:8},(_,i)=>'correct_0'+(i+1))]);await loadPaintedFrom('assets/witch');}await loadGhostArt('assets/ghosts');}catch(e){hlog('PAINTED ART FAILED: '+(e&&e.message||e));artError=String(e&&e.message||e);}$('start').classList.remove('show');if(resume&&saved){hunt.step=saved.step;jar.count=saved.count||0;$('hud').classList.add('show');$('scanner').classList.add('show');runClue();}else{clearSave();runOpening();}}
 $('startbtn').onclick=()=>begin(false);$('resumebtn').onclick=()=>begin(true);
 $('replay').onclick=()=>{if(hunt.busy)return;const s=HUNT.stations[hunt.step];if(hunt.state==='STATION')say('clue_0'+s.n,s.clue,{mood:'suspicious'});};
 $('closebtn').onclick=()=>{save({done:true});window.close();$('final').querySelector('.card').innerHTML='<h2>All done</h2><div class="big">You can close this tab now.</div>';};
