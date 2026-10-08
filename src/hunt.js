@@ -167,10 +167,10 @@ $('closebtn').onclick=()=>{save({done:true});window.close();$('final').querySele
 let devTaps=0;const devOn=()=>{$('dev').classList.add('show');};
 if(new URLSearchParams(location.search).get('dev')==='1')devOn();
 $('devtap').addEventListener('pointerdown',()=>{if(++devTaps>=5)devOn();});
-$('devcorrect').onclick=()=>onScanText(HUNT.stations[hunt.step].code);$('devwrong').onclick=()=>onScanText('hb'+(((hunt.step+3)%8)+1));
-$('devnext').onclick=()=>{if(hunt.busy)return;if(hunt.step<7){hunt.step++;jar.count=hunt.step;runClue();}};
-$('devreset').onclick=()=>{clearSave();location.reload();};
-function devRefresh(){const d=$('devstate');if(!$('dev').classList.contains('show'))return;d.textContent='art '+(ART.on?'painted':'VECTOR'+(artError?' ('+artError+')':' (loading)'))+'\nstate '+hunt.state+'  step '+(hunt.step+1)+'  jar '+jar.count+'\nwitch '+anim.mood+(anim.action?' / '+anim.action.id:'')+(anim.speech?' / speaking':'')+'\n'+hunt.log.slice(-4).join('\n');}
+$('devcorrect').onclick=()=>onScanText(HUNT.stations[hunt.step].code);
+// other dev actions live in the console: devWrong(), devNext(), devReset()
+window.devWrong=()=>onScanText('hb'+(((hunt.step+3)%8)+1));window.devNext=()=>{if(hunt.busy)return;if(hunt.step<7){hunt.step++;jar.count=hunt.step;runClue();}};window.devReset=()=>{clearSave();location.reload();};
+function devRefresh(){}
 
 // ---------- walking chatter: a random short line every 45–70 s of quiet between scans (only if its recording exists; always in dev mode) ----------
 let chatterAt=0,lastChatter=-1,quietSince=0;
