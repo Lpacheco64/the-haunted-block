@@ -107,7 +107,7 @@ function drawScene(ctx,W,H,dt){ctx.fillStyle=sceneCol;ctx.fillRect(0,0,W,H);
 
 // ---------- fx: shake + haptics ----------
 function shake(){const el=$('shake');el.classList.remove('on');void el.offsetWidth;el.classList.add('on');}
-function haptic(ms){try{if(navigator.vibrate)navigator.vibrate(ms);}catch(e){}}
+function haptic(ms){try{if(navigator.vibrate)navigator.vibrate(ms);}catch(e){}}   // ms or a pattern [on,off,on,…]; a no-op on iPhone (Safari has no vibration API)
 
 // ---------- stage ----------
 const canvas=$('stage'),ctx=canvas.getContext('2d');let DPR=1,view=[1,0,0,1,0,0];
@@ -124,13 +124,13 @@ document.addEventListener('visibilitychange',()=>{hidden=document.hidden;if(!hid
 // ---------- director: the sequences ----------
 function setState(s){hunt.state=s;hlog('→ '+s);}
 async function runOpening(){setState('OPENING');hunt.busy=true;$('hud').classList.add('show');$('scanner').classList.add('show');stationLabel();anim.big=true;await anim.play('hop');await say('opening',HUNT.opening,{mood:'suspicious'});anim.big=false;await waitSec(0.4);hunt.busy=false;await runClue();}
-async function runClue(){const s=HUNT.stations[hunt.step];setState('STATION');sceneCol=s.color;ghost.st='idle';ghost.t=0;stationLabel();hunt.busy=true;await say('clue_0'+s.n,s.clue,{mood:'suspicious'});anim.lookAt('down');hunt.busy=false;save({step:hunt.step,count:jar.count});}
+async function runClue(){const s=HUNT.stations[hunt.step];setState('STATION');if(hunt.step>0)haptic(20);sceneCol=s.color;ghost.st='idle';ghost.t=0;stationLabel();hunt.busy=true;await say('clue_0'+s.n,s.clue,{mood:'suspicious'});anim.lookAt('down');hunt.busy=false;save({step:hunt.step,count:jar.count});}
 async function onCorrect(){if(hunt.busy||hunt.state!=='STATION')return;const s=HUNT.stations[hunt.step];setState('CAPTURING');hunt.busy=true;$('scanwin').classList.add('pulse');haptic(30);
  anim.play('surprised');await waitSec(0.3);await say('correct_0'+s.n,s.capture,{mood:'happy'});
  if(!jar.fly&&ghost.st!=='gone')jarCapture();while(ghost.st!=='gone')await waitSec(0.05);await waitSec(0.4);$('scanwin').classList.remove('pulse');
  if(hunt.step>=7){await runFinale();return;}hunt.step++;hunt.busy=false;await runClue();}
-async function onWrong(){if(hunt.busy||hunt.state!=='STATION')return;hunt.busy=true;const i=hunt.wrongIdx;hunt.wrongIdx=(i+1)%3;ghost.st='idle';ghostNotice();await say('wrong_'+(i+1),HUNT.wrong[i],{mood:'suspicious'});hunt.busy=false;}
-async function runFinale(){setState('FINALE');hunt.busy=true;$('scanner').classList.remove('show');anim.play('celebrating');await say('final',HUNT.final,{mood:'happy'});if(!jar.released)jarRelease();await anim.play('laughing');for(const a of ['celebrating','magic','celebrating','laughing','celebrating']){await anim.play(a);}setState('DONE');hunt.done=true;save({done:true});$('final').classList.add('show');}
+async function onWrong(){if(hunt.busy||hunt.state!=='STATION')return;hunt.busy=true;haptic([60,40,60]);const i=hunt.wrongIdx;hunt.wrongIdx=(i+1)%3;ghost.st='idle';ghostNotice();await say('wrong_'+(i+1),HUNT.wrong[i],{mood:'suspicious'});hunt.busy=false;}
+async function runFinale(){setState('FINALE');hunt.busy=true;$('scanner').classList.remove('show');anim.play('celebrating');await say('final',HUNT.final,{mood:'happy'});if(!jar.released)jarRelease();await anim.play('laughing');for(const a of ['celebrating','magic','celebrating','laughing','celebrating']){await anim.play(a);}setState('DONE');hunt.done=true;save({done:true});haptic([30,30,30,30,120]);$('final').classList.add('show');}
 
 // ---------- scanner ----------
 let scanning=false,lastScan='',lastScanAt=-9;
