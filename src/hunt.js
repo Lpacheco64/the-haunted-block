@@ -74,7 +74,7 @@ async function say(name,text,opts={}){chatterReset();const cue=CUES[name]||{mood
  const fired=new Set();const total=text.length;
  const timed=cue.cues.map(c=>({...c,at_t:c.t!=null?c.t:(Math.max(0,text.indexOf(c.at))/total)*dur}));
  while(clock()<dur&&anim.speech){const t=clock();captionTick(t/dur);timed.forEach((c,i)=>{if(!fired.has(i)&&t>=c.at_t){fired.add(i);applyCue(c);}});await waitSec(0.05);}
- anim.stopSpeaking();return;}
+ anim.stopSpeaking();if(hunt.state==='STATION'||hunt.state==='DONE')captionHideSoon(5000);return;}
 function applyCue(c){const [k,a]=(c.do||'').split(':');if(k==='mood')anim.setMood(a);else if(k==='play')anim.play(a);else if(k==='look')anim.lookAt(a==='scanner'?'down':a);else if(k==='hunt'){if(a==='capture')jarCapture();if(a==='release')jarRelease();}else if(k==='sfx'&&a==='jar_rattle')jar.rattle=1.2;}
 
 // ---------- HUD ----------
@@ -86,10 +86,12 @@ function chunkText(t){const MAX=76;const sentences=t.replace(/\s+/g,' ').trim().
   if(best<0)return [x];return split(x.slice(0,best)).concat(split(x.slice(best)));};
  const pieces=[];sentences.forEach(sn=>split(sn).forEach(x=>pieces.push(x)));
  const out=[];let cur='';for(const p of pieces){if(cur&&(cur+' '+p).length>MAX){out.push(cur);cur=p;}else cur=cur?cur+' '+p:p;}if(cur)out.push(cur);return out;}
-function captionShow(t){capChunks=chunkText(t);const total=capChunks.reduce((a,c)=>a+c.length,0);let acc=0;capChunks=capChunks.map(c=>{const start=acc/total;acc+=c.length;return {text:c,start};});captionSet(0);if(!capHidden)$('caption').classList.add('show');}
+let capHideT=null;function captionHideSoon(ms){clearTimeout(capHideT);capHideT=setTimeout(()=>{$('caption').classList.remove('show');$('capagain').classList.add('show');},ms);}
+function captionShow(t){clearTimeout(capHideT);$('capagain').classList.remove('show');capChunks=chunkText(t);const total=capChunks.reduce((a,c)=>a+c.length,0);let acc=0;capChunks=capChunks.map(c=>{const start=acc/total;acc+=c.length;return {text:c,start};});captionSet(0);if(!capHidden)$('caption').classList.add('show');}
 function captionSet(i){$('captext').textContent=capChunks[i].text;$('caption').dataset.i=i;$('capwho').textContent='🧪 Agatha Bramble'+(capChunks.length>1?'  ·  '+(i+1)+' / '+capChunks.length:'');}
 function captionTick(progress){if(!capChunks||capChunks.length<2)return;let i=0;for(let k=0;k<capChunks.length;k++)if(progress>=capChunks[k].start)i=k;if(String(i)!==$('caption').dataset.i)captionSet(i);}
-$('caption').addEventListener('click',e=>{if(e.target.id==='replay')return;capHidden=!capHidden;$('caption').classList.toggle('show',!capHidden);});
+$('caption').addEventListener('click',e=>{if(e.target.id==='replay')return;captionHideSoon(0);});
+$('capagain').addEventListener('click',()=>{if(hunt.busy)return;const s=HUNT.stations[hunt.step];if(hunt.state==='STATION')say('clue_0'+s.n,s.clue,{mood:'suspicious'});});
 function stationLabel(){const s=HUNT.stations[hunt.step];$('station').textContent=s?('Station '+s.n+' · '+s.name):'';}
 
 // ---------- scene (flat colour + living layers; photos come in 6b) ----------
@@ -111,8 +113,8 @@ function drawScene(ctx,W,H,dt){sceneT+=dt;ctx.fillStyle=sceneCol;ctx.fillRect(0,
  if(sceneFade<1)sceneFade=Math.min(1,sceneFade+dt/0.8);
  if(scenePrev&&sceneFade<1)drawPhoto(ctx,W,H,scenePrev,1,sceneT);
  if(sceneCur)drawPhoto(ctx,W,H,sceneCur,sceneFade<1?easeIO(sceneFade):1,sceneT);
- const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(0,0,0,0.35)');g.addColorStop(0.55,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,0.5)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
- const gy=H*0.74;const gg=ctx.createLinearGradient(0,gy-H*0.02,0,H);gg.addColorStop(0,'rgba(8,5,14,0)');gg.addColorStop(0.12,'rgba(8,5,14,0.55)');gg.addColorStop(1,'rgba(8,5,14,0.92)');ctx.fillStyle=gg;ctx.fillRect(0,gy-H*0.02,W,H-gy+H*0.02);
+ const g=ctx.createLinearGradient(0,0,0,H*0.12);g.addColorStop(0,'rgba(0,0,0,0.45)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H*0.12);
+ const gy=H*0.74;const gg=ctx.createLinearGradient(0,gy-H*0.02,0,H);gg.addColorStop(0,'rgba(8,5,14,0)');gg.addColorStop(0.12,'rgba(8,5,14,0.35)');gg.addColorStop(1,'rgba(8,5,14,0.8)');ctx.fillStyle=gg;ctx.fillRect(0,gy-H*0.02,W,H-gy+H*0.02);
  for(const f of fog){f.x+=f.v*dt;if(f.x>1.3)f.x=-0.3;if(f.x<-0.3)f.x=1.3;const r=ctx.createRadialGradient(f.x*W,f.y*H,0,f.x*W,f.y*H,f.w*W*0.5);r.addColorStop(0,'rgba(200,210,200,'+f.a+')');r.addColorStop(1,'rgba(200,210,200,0)');ctx.fillStyle=r;ctx.fillRect(0,0,W,H);}
  for(const b of flies){b.p+=dt*b.s;const x=b.x*W+Math.sin(b.p)*18,y=b.y*H+Math.cos(b.p*0.7)*12,a=0.3+0.5*Math.abs(Math.sin(b.p*1.3));ctx.fillStyle='rgba(180,255,120,'+a+')';ctx.beginPath();ctx.arc(x,y,2.2,0,TAU);ctx.fill();}
  if(Math.random()<0.02){ctx.fillStyle='rgba(255,240,200,0.06)';ctx.fillRect(0,0,W,H);}}

@@ -25,8 +25,10 @@ h1{font-size:clamp(28px,8vw,40px);margin:0 0 6px;letter-spacing:.02em}
 #hud{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);display:none;justify-content:center;padding:12px;pointer-events:none;z-index:3}
 #hud.show{display:flex}
 #station{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 16px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;backdrop-filter:blur(8px)}
-#caption{position:fixed;left:14px;right:14px;top:calc(env(safe-area-inset-top,0px) + 52px);background:rgba(12,8,22,0.34);border:1px solid rgba(255,255,255,0.10);text-shadow:0 1px 3px rgba(0,0,0,0.85),0 0 8px rgba(0,0,0,0.6);border-radius:16px;padding:9px 14px 10px 14px;font-size:15px;line-height:1.4;display:none;z-index:3;backdrop-filter:blur(8px);}
+#caption{position:fixed;left:14px;right:14px;top:calc(env(safe-area-inset-top,0px) + 52px);background:rgba(12,8,22,0.28);border:1px solid rgba(255,255,255,0.10);text-shadow:0 1px 3px rgba(0,0,0,0.85),0 0 8px rgba(0,0,0,0.6);border-radius:16px;padding:9px 14px 10px 14px;font-size:15px;line-height:1.4;display:none;z-index:3;backdrop-filter:blur(8px);}
 #caption.show{display:block}
+#capagain{position:fixed;right:14px;top:calc(env(safe-area-inset-top,0px) + 52px);z-index:3;display:none;font:inherit;font-size:12px;color:var(--ink);background:rgba(12,8,22,0.45);border:1px solid rgba(255,255,255,0.18);border-radius:999px;padding:5px 11px;backdrop-filter:blur(6px)}
+#capagain.show{display:block}
 #caption .who{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:2px;padding-right:80px}
 #replay{position:absolute;right:8px;top:6px;font:inherit;font-size:11px;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
 #scanner{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);width:120px;display:none;flex-direction:column;align-items:center;z-index:3}
@@ -54,6 +56,7 @@ h1{font-size:clamp(28px,8vw,40px);margin:0 0 6px;letter-spacing:.02em}
 <body>
 <div id="shake" style="position:fixed;inset:0"><canvas id="stage"></canvas></div>
 <div id="hud"><div id="station"></div></div>
+<button id="capagain">▶ hear the clue again</button>
 <div id="caption"><div class="who" id="capwho">🧪 Agatha Bramble</div><div id="captext"></div><button id="replay">▶ again</button></div>
 <div id="scanner"><div id="scanwin"><video id="scanvid" muted playsinline autoplay></video><button id="scanbtn">Tap to enable the magic circle</button></div><div id="scanhint">scan the next circle</div></div>
 <div id="start" class="screen show"><h1>The Block Is Haunted</h1><p class="sub">Eight ghosts are loose. Agatha needs a hand.</p><button class="btn" id="startbtn">Let's go</button><button class="btn ghost" id="resumebtn" style="display:none">Pick up where I left off</button></div>
