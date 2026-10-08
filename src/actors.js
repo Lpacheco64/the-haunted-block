@@ -83,7 +83,11 @@ function drawGhostFigure(ctx,o){
 }
 
 // ---------- the main ghost at the current station ----------
-const ghost={st:'idle',x:0,y:0,sx:1,sy:1,alpha:1,t:0,idx:-1,appear:1,notice:0,panic:0,size:0};
+const ghost={st:'idle',x:0,y:0,sx:1,sy:1,alpha:1,t:0,idx:-1,appear:1,notice:0,panic:0,size:0,flee:0,roam:{x:0,y:0,tx:0,ty:0,next:6,spot:'home'}};
+// restless roaming between stations: a few spots relative to home (fractions of W/H); 'away' drifts off the top and comes back
+const ROAM_SPOTS=[['home',0,0,5],['home',0,0,5],['jar',0.10,0.21,4],['hat',-0.40,-0.20,4],['high',-0.12,-0.26,3],['away',0.05,-0.75,3],['near',-0.22,0.06,4]];
+function ghostPoke(){if(ghost.st!=='idle'||ghost.flee>0||ghost.appear<1)return false;ghost.flee=0.001;ghost.roam.spot='home';ghost.roam.tx=0;ghost.roam.ty=0;if(typeof haptic==='function')haptic(25);return true;}
+
 const GSIZE=0.2;   // ghost size as a fraction of screen height (was 0.13; props scale with it)
 function ghostHome(W,H){return [W*0.73,H*0.74-H*0.23];}
 function ghostNotice(){ghost.notice=1.4;}
@@ -94,10 +98,18 @@ function drawGhost(ctx,W,H,dt){
   if(ghost.idx!==hunt.step){ghost.idx=hunt.step;ghost.appear=0;ghost.t=0;ghost.notice=0;ghost.panic=0;}
   if(ghost.st==='gone'||ghost.st==='captured')return;                 // captured ghosts are drawn by the jar (in front of it)
   ghost.t+=dt;ghost.appear=Math.min(1,ghost.appear+dt/0.7);ghost.notice=Math.max(0,ghost.notice-dt);
+  // tap → it bolts off the right edge, hides, then drifts back in with its puff
+  if(ghost.flee>0){ghost.flee+=dt;if(ghost.flee>3.2){ghost.flee=0;ghost.appear=0;ghost.roam.next=ghost.t+5;}else if(ghost.flee>0.5)return;}
+  // restless roaming (only when idle for a while and nothing is happening)
+  const R=ghost.roam;if(ghost.t>8&&!hunt.busy&&ghost.flee===0){if(ghost.t>=R.next){const pick=ROAM_SPOTS[Math.floor(Math.random()*ROAM_SPOTS.length)];R.spot=pick[0];R.tx=pick[1];R.ty=pick[2];R.next=ghost.t+pick[3]+Math.random()*3;}}
+  else if(ghost.t<=8){R.spot='home';R.tx=0;R.ty=0;R.next=ghost.t+6;}
+  const rk=Math.min(1,dt*1.6);R.x+=(R.tx-R.x)*rk;R.y+=(R.ty-R.y)*rk;
   const size=H*GSIZE,[hx,hy]=ghostHome(W,H),T=ghost.t,id=s.ghost,tr=GTRAITS[id]||{lid:0.3};
   const o=ghostIdle(id,T);o.rot=(o.rot||0)+0.05*Math.sin(T*1.6+1);o.dy=(o.dy||0)+0.025*Math.sin(T*2.3);o.sx=(o.sx||1)*(1+0.02*Math.sin(T*2.9));o.sy=(o.sy||1)*(1-0.02*Math.sin(T*2.9));let look=[o.gx,o.gy],lid=Math.min(0.85,tr.lid+o.lidAdd),jx=0,jy=0;
   if(ghost.notice>0){look=[-0.7,0.5];lid=Math.max(0,lid-0.3);jy=-Math.sin(Math.min(1,(1.4-ghost.notice)/0.25)*Math.PI)*0.06;}   // a wrong scan: it peeks at the witch, startled
-  ghost.x=Math.min(hx+o.dx*size+jx*size,W-size*0.62);ghost.y=hy+(o.dy+jy)*size;ghost.sx=o.sx;ghost.sy=o.sy;ghost.size=size;
+  let fx=0,fsx=1,fsy=1;if(ghost.flee>0){const f=Math.min(1,ghost.flee/0.5);fx=W*0.7*f*f;fsx=1+0.35*f;fsy=1-0.25*f;look=[1,0];lid=0;}
+  ghost.x=Math.min(hx+o.dx*size+jx*size+R.x*W,W-size*0.62)+fx;ghost.y=hy+(o.dy+jy)*size+R.y*H;ghost.sx=o.sx*fsx;ghost.sy=o.sy*fsy;ghost.size=size;
+  if(R.spot==='hat'||R.spot==='high'){look=[0.4,0.9];}   // peeking down at the witch
   const k=ghost.appear<1?easeOutBack(ghost.appear):1;ghost.alpha=Math.min(1,ghost.appear*2);
   // the diva brings her own spotlight
   if(id==='diva'){const g=ctx.createLinearGradient(0,ghost.y-H*0.5,0,ghost.y+size*0.5);g.addColorStop(0,'rgba(168,107,216,0.0)');g.addColorStop(1,'rgba(168,107,216,0.22)');ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(ghost.x-size*0.15,ghost.y-H*0.5);ctx.lineTo(ghost.x+size*0.15,ghost.y-H*0.5);ctx.lineTo(ghost.x+size*0.9,ghost.y+size*0.55);ctx.lineTo(ghost.x-size*0.9,ghost.y+size*0.55);ctx.closePath();ctx.fill();}
@@ -115,11 +127,12 @@ function jarPath(ctx,g){const{h,wb,wn}=g;ctx.beginPath();ctx.moveTo(-wn/2,-h);ct
 function jarSlot(g,i){const s=JSLOTS[i%8];return [s[0]*g.wb,s[1]*g.h];}
 function jarFx(x,y,n,col,spd,life){for(let i=0;i<n;i++){const a=Math.random()*TAU,v=spd*(0.3+Math.random());jar.fx.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-spd*0.4,age:0,life:life*(0.6+Math.random()*0.6),col,r:2+Math.random()*3});}}
 function jarCapture(){if(ghost.st==='captured'||ghost.st==='gone')return;ghost.st='captured';jar.fly={phase:'panic',t:0,x0:ghost.x,y0:ghost.y,trail:[]};}
-function jarRelease(){if(jar.released)return;jar.released=true;jar.glow=1;jar.blow={x:0,y:0,vx:(Math.random()-0.3)*60,vy:-260,rot:0,vr:6,t:0};shake();haptic(120);
+function jarRelease(){if(jar.released)return;jar.released=true;if(typeof startFinaleMusic==='function')startFinaleMusic();jar.glow=1;jar.blow={x:0,y:0,vx:(Math.random()-0.3)*60,vy:-260,rot:0,vr:6,t:0};shake();haptic(120);
   const W=canvas.width/DPR,H=canvas.height/DPR,g=jarGeom(W,H);jarFx(g.x,g.y-g.h,70,'rgba(124,255,74,0.9)',260,1.2);
   for(let i=0;i<Math.min(8,HUNT.stations.length);i++){const st=HUNT.stations[i];jar.party.push({i,st,x:g.x+(Math.random()-0.5)*g.wn,y:g.y-g.h,vx:(Math.random()-0.5)*W*1.1,vy:-H*(0.5+Math.random()*0.5),ph:Math.random()*TAU,r:0.18+Math.random()*0.2,t:0});}}
 function drawMini(ctx,x,y,size,i,T,hop){const st=HUNT.stations[i];ctx.save();ctx.translate(x,y+hop);ctx.rotate(Math.sin(T*1.3+i)*0.08);ctx.globalAlpha=0.95;drawGhostFigure(ctx,{size,T:T+i,station:st,look:[Math.sin(T*0.7+i)*0.6,0.2],lid:(GTRAITS[st.ghost]||{lid:0.3}).lid*0.6,blink:blinkAmt(i*13+5,T),prop:size>jarMiniProp,eyeBoost:1.7});ctx.restore();}
 const jarMiniProp=0; // props visible on every mini
+function jarPoke(){if(jar.released)return false;jar.rattle=Math.max(jar.rattle,0.9);jar.sq=Math.max(jar.sq,0.5);jar.peek=1.2;if(typeof haptic==='function')haptic(jar.count?40:15);return true;}
 function drawJar(ctx,W,H,dt){
   const g=jarGeom(W,H);jar.t+=dt;const T=jar.t;
   if(!jar.init){jar.init=true;jar.lidO=jar.count===0?1:0;jar.park=jar.count===0?1:0;}
@@ -151,7 +164,7 @@ function drawJar(ctx,W,H,dt){
   // contents, clipped to the glass
   ctx.save();jarPath(ctx,g);ctx.clip();
   const gi=ctx.createLinearGradient(0,-g.h,0,0);gi.addColorStop(0,'rgba(124,255,74,0.0)');gi.addColorStop(1,'rgba(124,255,74,'+Math.min(0.5,0.08+0.03*jar.count)+')');ctx.fillStyle=gi;ctx.fillRect(-g.wb,-g.h,g.wb*2,g.h);
-  const bump=jar.count>=4?0.25*(jar.count-3):0;
+  jar.peek=Math.max(0,(jar.peek||0)-dt);const bump=(jar.count>=4?0.25*(jar.count-3):0)+(jar.peek>0?1.6*Math.sin(Math.min(1,(1.2-jar.peek)/1.2)*Math.PI):0);
   for(let i=0;i<jar.count&&i<8;i++){const[sx,sy]=jarSlot(g,i);const hopPh=(T*0.7+i*1.3)%4,hop=bump&&hopPh<0.3?-Math.sin(hopPh/0.3*Math.PI)*g.wb*0.12*bump:0;const wob=Math.sin(T*(2+i*0.3))*g.wb*0.012*(1+bump*2);drawMini(ctx,sx+wob,sy,g.wb*0.3,i,T,hop);}
   ctx.restore();
   // glass: tint, edge light, highlights (key light from the upper left)

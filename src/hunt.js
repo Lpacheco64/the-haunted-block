@@ -32,6 +32,7 @@ const HUNT={id:'haunted-block-2026',title:'The Block Is Haunted',
    clue:"The last one's the BOSS — she thinks she runs this place.\nMarch into the office and meet her face to face.",
    capture:"THE BOSS HERSELF! That's all EIGHT — oh, this jar is positively RATTLING…"}],
  opening:"Agatha Bramble, keeper of The Block's ghosts — at your service. And PERFECT timing. Some FOOL left my ghost jar open, and now eight spirits are loose all over The Block. The party can't start till they're back in this jar — and my knees are three hundred years old, so YOU'RE doing the walking. Find where each ghost hides, scan my magic circle, and I'll do the rest. First ghost — listen up.",
+ chatter:["Any day now…","My knees were young once. Three hundred years ago.","I can smell that ghost from here. Smells like trouble.","Don't dawdle — ghosts get BORED, and bored ghosts get ideas.","If you see my cat, tell him I'm NOT speaking to him.","Keep walking. The jar's not going to fill itself.","Ooh, I felt a shiver. Either a ghost… or a draft.","Heh heh heh. You're doing better than the last lot.","Lost? Tap my nose. It won't help, but it's funny.","Psst — read the clue again. I put a hint in it. Probably."],
  wrong:["Wrong circle, clever-clogs. LISTEN to the rhyme.","Nope. Do I look like I have all night? …Don't answer that.","Not it — even the ghosts are shaking their heads. Try again!"],
  final:"EIGHT ghosts! You actually did it. And now — OUT you go, you rowdy lot, the party's starting and you're invited THIS time! As for you, ghost-hunter — you're standing right where your reward lives. Show this screen to the humans in the office, and they'll hand you a little of my potion's glow. Wear it. Keeps the ghosts off you till morning. Happy Halloween from The Block… heh heh heh… HEH HEH HEH!"};
 const CUES=CUE_DRAFTS; // from the engine core (assets/cues drafts); t may be null → fired by text position
@@ -52,13 +53,18 @@ const hunt={state:'BOOT',step:0,captured:0,wrongIdx:0,done:false,busy:false,log:
 function hlog(s){hunt.log.push(s);if(hunt.log.length>12)hunt.log.shift();}
 
 // ---------- audio (voice via Web Audio when a clip exists; synthetic fallback) ----------
-let ACTX=null,music=null;
+let ACTX=null,music=null,finaleAudio=null,finaleTarget=0;
+// music mix: background loop ducks under narration; the finale track fades in when the ghosts are released and the loop fades out
+function startFinaleMusic(){if(finaleAudio)return;try{const a=new Audio('assets/audio/finale.mp3');a.loop=true;a.volume=0;a.play().then(()=>{finaleAudio=a;finaleTarget=0.55;hunt.finaleMusic=true;}).catch(()=>{});}catch(e){}}
+function audioMix(dt){const k=Math.min(1,dt*2.5),cl=v=>Math.max(0,Math.min(1,v));
+ if(music){const tgt=hunt.finaleMusic?0:(anim.speech?0.15:0.35);music.volume=cl(music.volume+(tgt-music.volume)*k);}
+ if(finaleAudio)finaleAudio.volume=cl(finaleAudio.volume+(finaleTarget-finaleAudio.volume)*k);}
 function audioUnlock(){if(!ACTX){try{ACTX=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(ACTX&&ACTX.state==='suspended')ACTX.resume();
  if(!music){music=new Audio();music.loop=true;music.volume=0.35;music.src='assets/audio/bg_loop.mp3';music.play().catch(()=>{});}}
 const clipCache={};
 async function loadClip(name){if(clipCache[name]!==undefined)return clipCache[name];let buf=null;try{const r=await fetch('assets/audio/'+name+'.mp3');if(r.ok&&ACTX)buf=await ACTX.decodeAudioData(await r.arrayBuffer());}catch(e){}clipCache[name]=buf;return buf;}
 // say(): returns when the line ends. Fires cue track; t null → position in text.
-async function say(name,text,opts={}){const cue=CUES[name]||{mood:opts.mood||'neutral',cues:[]};anim.setMood(opts.mood||cue.mood||'neutral');
+async function say(name,text,opts={}){chatterReset();const cue=CUES[name]||{mood:opts.mood||'neutral',cues:[]};anim.setMood(opts.mood||cue.mood||'neutral');
  captionShow(text);const buf=await loadClip(name);let dur,clock;
  if(buf){const src=ACTX.createBufferSource();src.buffer=buf;src.connect(ACTX.destination);const t0=ACTX.currentTime;src.start();dur=buf.duration;clock=()=>ACTX.currentTime-t0-(ACTX.outputLatency||ACTX.baseLatency||0);
   anim.speech={env:envFromBuffer(buf),dur,t:0,style:null,lastTick:-1,shape:null,prevOpen:null,emph:0,lastPeak:-1,pv:0,clock,res:()=>{},fired:new Set()};}
@@ -106,12 +112,12 @@ const canvas=$('stage'),ctx=canvas.getContext('2d');let DPR=1,view=[1,0,0,1,0,0]
 function layout(){const W=window.innerWidth,H=window.innerHeight;DPR=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
  const s=(H*0.5)/1520;view=[s*DPR,0,0,s*DPR,(W*0.30-500*s)*DPR,(H*0.74-1560*s)*DPR];}
 window.addEventListener('resize',layout);
-function render(P,dt){const W=canvas.width/DPR,H=canvas.height/DPR;ctx.setTransform(DPR,0,0,DPR,0,0);drawScene(ctx,W,H,dt);drawGhost(ctx,W,H,dt);
+function render(P,dt){audioMix(dt);const W=canvas.width/DPR,H=canvas.height/DPR;ctx.setTransform(DPR,0,0,DPR,0,0);drawScene(ctx,W,H,dt);drawGhost(ctx,W,H,dt);
  rigUpdate(P);for(const n of sortedDrawList(P)){if(!ART.on&&!artError&&hunt.state!=='BOOT'&&hunt.state!=='START')continue;if(n.kind==='raster'&&!RASTER[n.id])continue;const m=mmul(view,n.world);ctx.setTransform(m[0],m[1],m[2],m[3],m[4],m[5]);if(n.id==='w-fx')fxDraw(ctx);else if(rasterEnabled&&RASTER[n.id]&&n.id!=='w-jaw')drawRaster(ctx,n.id);else n.draw(ctx,P,n);}
  ctx.setTransform(DPR,0,0,DPR,0,0);drawJar(ctx,W,H,dt);}
 const anim=new Animator();let P=defaults(),last=performance.now(),hidden=false;
-function loop(t){let dt=Math.min((t-last)/1000,0.05);last=t;if(!hidden){now+=dt;P=anim.update(dt);fxUpdate(dt,P);render(P,dt);tickWaiters();}devRefresh();requestAnimationFrame(loop);}
-document.addEventListener('visibilitychange',()=>{hidden=document.hidden;if(!hidden)last=performance.now();if(ACTX){if(hidden)ACTX.suspend();else ACTX.resume();}if(music){if(hidden)music.pause();else if(hunt.state!=='BOOT'&&hunt.state!=='START')music.play().catch(()=>{});}});
+function loop(t){let dt=Math.min((t-last)/1000,0.05);last=t;if(!hidden){now+=dt;P=anim.update(dt);fxUpdate(dt,P);render(P,dt);tickWaiters();chatterTick();}devRefresh();requestAnimationFrame(loop);}
+document.addEventListener('visibilitychange',()=>{hidden=document.hidden;if(!hidden)last=performance.now();if(ACTX){if(hidden)ACTX.suspend();else ACTX.resume();}if(finaleAudio){if(hidden)finaleAudio.pause();else finaleAudio.play().catch(()=>{});}if(music){if(hidden)music.pause();else if(hunt.state!=='BOOT'&&hunt.state!=='START')music.play().catch(()=>{});}});
 
 // ---------- director: the sequences ----------
 function setState(s){hunt.state=s;hlog('→ '+s);}
@@ -153,4 +159,20 @@ $('devnext').onclick=()=>{if(hunt.busy)return;if(hunt.step<7){hunt.step++;jar.co
 $('devreset').onclick=()=>{clearSave();location.reload();};
 function devRefresh(){const d=$('devstate');if(!$('dev').classList.contains('show'))return;d.textContent='art '+(ART.on?'painted':'VECTOR'+(artError?' ('+artError+')':' (loading)'))+'\nstate '+hunt.state+'  step '+(hunt.step+1)+'  jar '+jar.count+'\nwitch '+anim.mood+(anim.action?' / '+anim.action.id:'')+(anim.speech?' / speaking':'')+'\n'+hunt.log.slice(-4).join('\n');}
 
+// ---------- walking chatter: a random short line every 45–70 s of quiet between scans (only if its recording exists; always in dev mode) ----------
+let chatterAt=0,lastChatter=-1,quietSince=0;
+function chatterReset(){quietSince=now;chatterAt=now+45+Math.random()*25;}
+async function chatterTick(){if(hunt.state!=='STATION'||hunt.busy||anim.speech||anim.action||hidden)return;if(now<chatterAt)return;
+ let i;do{i=Math.floor(Math.random()*HUNT.chatter.length);}while(i===lastChatter);const name='chatter_'+String(i+1).padStart(2,'0');
+ const buf=await loadClip(name);if(!buf&&!$('dev').classList.contains('show')){chatterAt=now+30;return;}lastChatter=i;hunt.busy=true;await say(name,HUNT.chatter[i],{mood:Math.random()<0.5?'suspicious':'happy'});hunt.busy=false;anim.lookAt('down');chatterReset();}
+// ---------- tap reactions ----------
+function screenOf(id,px,py){const S=LAYER_SPACE,[wx,wy]=worldPoint(id,S.ox+px/S.ppu,S.oy+py/S.ppu);return[(view[0]*wx+view[2]*wy+view[4])/DPR,(view[1]*wx+view[3]*wy+view[5])/DPR,view[0]/DPR/S.ppu];}
+const TAPS=[['w-nose',690,875,95,'sneeze'],['w-eye-L',600,690,72,'winkL'],['w-eye-R',730,705,66,'winkR'],['w-hat',560,280,240,'hatbump'],['w-flask',700,1395,115,'bubble'],['w-torso',620,1120,175,'laughing']];
+function tapAt(cx,cy){if(hunt.state!=='STATION'&&hunt.state!=='DONE')return;
+ // ghost first (it floats over everything), then the jar, then the witch zones
+ if(ghost.st==='idle'&&ghost.size&&Math.hypot(cx-ghost.x,cy-(ghost.y-ghost.size*0.25))<ghost.size*0.6){if(ghostPoke()){anim.lookAt('right');setTimeout(()=>anim.lookAt('down'),1200);}return;}
+ const W=canvas.width/DPR,H=canvas.height/DPR,g=jarGeom(W,H);if(Math.abs(cx-g.x)<g.wb*0.8&&cy<g.y+g.h*0.1&&cy>g.y-g.h*1.1){jarPoke();anim.lookAt('right');setTimeout(()=>anim.lookAt('down'),900);return;}
+ if(anim.speech||hunt.busy)return;
+ for(const [id,px,py,r,act] of TAPS){const [sx,sy,k]=screenOf(id,px,py);if(Math.hypot(cx-sx,cy-sy)<r*k){haptic(20);if(act==='winkL'||act==='winkR')anim.play('wink',{st:{side:act.slice(-1)}});else anim.play(act);if(act==='sneeze')setTimeout(()=>{const [fx,fy]=worldPoint('w-flask-mouth');for(let i=0;i<8;i++)emit(fx,fy,'bubble');},700);chatterAt=Math.max(chatterAt,now+20);return;}}}
+canvas.addEventListener('pointerdown',e=>{if(e.target!==canvas)return;tapAt(e.clientX,e.clientY);},{passive:true});
 layout();requestAnimationFrame(loop);
