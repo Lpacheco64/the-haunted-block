@@ -109,7 +109,7 @@ function scenePreload(i){const s=HUNT.stations[i];if(s&&s.scene)sceneLoad(s.scen
 // the photo is a full-width band across the upper screen (whole storefront visible, nothing cropped off the sides); the characters stand on the dark ground in front of it
 function drawPhoto(ctx,W,H,url,alpha,t){const S=url&&SCENES[url];if(!S||!S.ok)return false;const im=S.im,z=1.01+0.01*Math.sin(t*0.12);
  // fit to width; if that leaves the photo's ground line above Agatha's feet (landmark low in the frame), scale up a little (cropping the sides) until it reaches them
- const key=(url.match(/([^\/]+)\.jpg$/)||[])[1],g=SCENE_GROUND[key]||0.8,top=H*0.105,need=(H*0.77-top)/(g*im.height),fit=W/im.width,sc=Math.min(fit*1.25,Math.max(fit,need))*z,w=im.width*sc,hh=im.height*sc,x=(W-w)/2,y=Math.max(top,H*0.77-g*hh);   // if the cap is hit, slide the photo down instead so the ground still meets her feet
+ const key=(url.match(/([^\/]+)\.jpg$/)||[])[1],g=SCENE_GROUND[key]||0.8,top=H*0.105,need=(H*0.77-top)/(g*im.height),fit=W/im.width,sc=Math.min(fit*1.25,Math.max(fit,need))*z,w=im.width*sc,hh=im.height*sc,x=(W-w)/2,y=H*0.77-g*hh;   // ground line pinned to her feet whatever the screen's shape; on short screens the photo slides up under the header
  ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(im,x,y,w,hh);
  const fe=ctx.createLinearGradient(0,y,0,y+hh*0.10);fe.addColorStop(0,'rgba(18,12,30,1)');fe.addColorStop(1,'rgba(18,12,30,0)');ctx.fillStyle=fe;ctx.fillRect(0,y,W,hh*0.10);
  const f0=Math.max(0.8,g)*hh;const fb=ctx.createLinearGradient(0,y+f0,0,y+hh);fb.addColorStop(0,'rgba(8,5,14,0)');fb.addColorStop(1,'rgba(8,5,14,0.85)');ctx.fillStyle=fb;ctx.fillRect(0,y+f0,W,hh-f0);   // fade starts at the ground line, never above it, so the floor under her feet stays visible
