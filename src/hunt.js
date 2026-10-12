@@ -101,7 +101,7 @@ let sceneCol='#2b2230',sceneTarget='#2b2230',sceneMix=1;
 // photo scenes: graded stills (assets/scenes), cover-fit anchored a little above centre so the landmark stays in the upper two-thirds,
 // slow breathing zoom, 0.8 s crossfade between stations, next station's photo preloaded while you walk.
 // ground: where the landmark meets the pavement, as a fraction of the photo's height; the photo is placed so that line sits just under Agatha's feet
-const SCENE_GROUND={"00-entrance-wide": 0.72, "01-hotdog": 0.9, "02-stairs": 0.7, "03-collective": 0.8, "04-bookstore": 0.82, "05-hive": 0.88, "06-grass": 0.74, "07-stage_1": 0.86, "08-office": 0.93};
+const SCENE_GROUND={"00-entrance-wide": 0.74, "01-hotdog": 0.97, "02-stairs": 0.72, "03-collective": 0.84, "04-bookstore": 0.86, "05-hive": 0.96, "06-grass": 0.78, "07-stage_1": 0.9, "08-office": 0.985};
 const SCENES={};function sceneLoad(url){if(!url)return null;if(!SCENES[url]){const im=new Image();im.decoding='async';im.src=url;SCENES[url]={im,ok:false};im.onload=()=>{SCENES[url].ok=true;};}return SCENES[url];}
 let sceneCur=null,scenePrev=null,sceneFade=1,sceneT=0;
 function sceneSet(url){if(url===sceneCur)return;scenePrev=sceneCur;sceneCur=url;sceneFade=0;sceneLoad(url);}
@@ -109,7 +109,7 @@ function scenePreload(i){const s=HUNT.stations[i];if(s&&s.scene)sceneLoad(s.scen
 // the photo is a full-width band across the upper screen (whole storefront visible, nothing cropped off the sides); the characters stand on the dark ground in front of it
 function drawPhoto(ctx,W,H,url,alpha,t){const S=url&&SCENES[url];if(!S||!S.ok)return false;const im=S.im,z=1.01+0.01*Math.sin(t*0.12);
  // fit to width; if that leaves the photo's ground line above Agatha's feet (landmark low in the frame), scale up a little (cropping the sides) until it reaches them
- const key=(url.match(/([^\/]+)\.jpg$/)||[])[1],g=SCENE_GROUND[key]||0.8,top=H*0.105,need=(H*0.77-top)/(g*im.height),fit=W/im.width,sc=Math.min(fit*1.3,Math.max(fit,need))*z,w=im.width*sc,hh=im.height*sc,x=(W-w)/2,y=top-(sc/z-sc)*0;
+ const key=(url.match(/([^\/]+)\.jpg$/)||[])[1],g=SCENE_GROUND[key]||0.8,top=H*0.105,need=(H*0.77-top)/(g*im.height),fit=W/im.width,sc=Math.min(fit*1.25,Math.max(fit,need))*z,w=im.width*sc,hh=im.height*sc,x=(W-w)/2,y=Math.max(top,H*0.77-g*hh);   // if the cap is hit, slide the photo down instead so the ground still meets her feet
  ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(im,x,y,w,hh);
  const fe=ctx.createLinearGradient(0,y,0,y+hh*0.10);fe.addColorStop(0,'rgba(18,12,30,1)');fe.addColorStop(1,'rgba(18,12,30,0)');ctx.fillStyle=fe;ctx.fillRect(0,y,W,hh*0.10);
  const fb=ctx.createLinearGradient(0,y+hh*0.80,0,y+hh);fb.addColorStop(0,'rgba(8,5,14,0)');fb.addColorStop(1,'rgba(8,5,14,0.9)');ctx.fillStyle=fb;ctx.fillRect(0,y+hh*0.80,W,hh*0.20);
