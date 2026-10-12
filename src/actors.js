@@ -88,8 +88,8 @@ const ghost={st:'idle',x:0,y:0,sx:1,sy:1,alpha:1,t:0,idx:-1,appear:1,notice:0,pa
 const ROAM_SPOTS=[['home',0,0,5],['home',0,0,5],['jar',0.10,0.21,4],['hat',-0.40,-0.20,4],['high',-0.12,-0.22,3],['sky',0.02,-0.24,3],['near',-0.22,0.06,4]];
 function ghostPoke(){if(ghost.st!=='idle'||ghost.flee>0||ghost.appear<1)return false;ghost.flee=0.001;ghost.roam.spot='home';ghost.roam.tx=0;ghost.roam.ty=0;if(typeof haptic==='function')haptic(25);return true;}
 
-const GSIZE=0.2;   // ghost size as a fraction of screen height (was 0.13; props scale with it)
-function ghostHome(W,H){return [W*0.73,H*0.74-H*0.23];}
+const GSIZE=0.17;   // ghost size as a fraction of screen height (was 0.13; props scale with it)
+function ghostHome(W,H){return [W*0.74,H*0.76-H*0.20];}
 function ghostNotice(){ghost.notice=1.4;}
 function blinkAmt(seed,T){const ph=(T*0.31+seed/97)%1;return ph<0.035?Math.sin(ph/0.035*Math.PI):0;}
 const easeOutBack=t=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2);};
@@ -122,7 +122,7 @@ function drawGhost(ctx,W,H,dt){
 // ---------- jar ----------
 const jar={count:0,rattle:0,glow:0,lidO:1,park:1,closing:false,sq:0,fly:null,released:false,party:[],fx:[],init:false,t:0,blow:null,autoRattle:0};
 const JSLOTS=[[-.24,-.16],[.22,-.18],[0,-.3],[-.26,-.42],[.25,-.44],[-.08,-.52],[.1,-.62],[-.14,-.62]];
-function jarGeom(W,H){const h=H*0.17,wb=h*0.78,wn=wb*0.5;return{x:W*0.83,y:H*0.74,h,wb,wn};}
+function jarGeom(W,H){const h=H*0.15,wb=h*0.78,wn=wb*0.5;return{x:W*0.84,y:H*0.76,h,wb,wn};}
 function jarPath(ctx,g){const{h,wb,wn}=g;ctx.beginPath();ctx.moveTo(-wn/2,-h);ctx.lineTo(-wn/2,-h*0.84);ctx.bezierCurveTo(-wn/2,-h*0.74,-wb/2,-h*0.74,-wb/2,-h*0.5);ctx.bezierCurveTo(-wb/2,-h*0.12,-wb*0.36,0,0,0);ctx.bezierCurveTo(wb*0.36,0,wb/2,-h*0.12,wb/2,-h*0.5);ctx.bezierCurveTo(wb/2,-h*0.74,wn/2,-h*0.74,wn/2,-h*0.84);ctx.lineTo(wn/2,-h);ctx.closePath();}
 function jarSlot(g,i){const s=JSLOTS[i%8];return [s[0]*g.wb,s[1]*g.h];}
 function jarFx(x,y,n,col,spd,life){for(let i=0;i<n;i++){const a=Math.random()*TAU,v=spd*(0.3+Math.random());jar.fx.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-spd*0.4,age:0,life:life*(0.6+Math.random()*0.6),col,r:2+Math.random()*3});}}

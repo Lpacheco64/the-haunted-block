@@ -106,10 +106,14 @@ const SCENES={};function sceneLoad(url){if(!url)return null;if(!SCENES[url]){con
 let sceneCur=null,scenePrev=null,sceneFade=1,sceneT=0;
 function sceneSet(url){if(url===sceneCur)return;scenePrev=sceneCur;sceneCur=url;sceneFade=0;sceneLoad(url);}
 function scenePreload(i){const s=HUNT.stations[i];if(s&&s.scene)sceneLoad(s.scene);}
-function drawPhoto(ctx,W,H,url,alpha,t){const S=url&&SCENES[url];if(!S||!S.ok)return false;const im=S.im,key=(url.match(/([^\/]+)\.jpg$/)||[])[1],g=SCENE_GROUND[key]||0.8,GY=H*0.76,z=1.02+0.02*Math.sin(t*0.12);
- const sc=Math.max(W/im.width,GY/(g*im.height))*z,w=im.width*sc,hh=im.height*sc,x=(W-w)/2+Math.sin(t*0.07)*W*0.01,y=GY-g*hh;
- ctx.globalAlpha=alpha;ctx.drawImage(im,x,y,w,hh);ctx.globalAlpha=1;return true;}
-function drawScene(ctx,W,H,dt){sceneT+=dt;ctx.fillStyle=sceneCol;ctx.fillRect(0,0,W,H);
+// the photo is a full-width band across the upper screen (whole storefront visible, nothing cropped off the sides); the characters stand on the dark ground in front of it
+function drawPhoto(ctx,W,H,url,alpha,t){const S=url&&SCENES[url];if(!S||!S.ok)return false;const im=S.im,z=1.01+0.01*Math.sin(t*0.12);
+ const sc=(W/im.width)*z,w=im.width*sc,hh=im.height*sc,x=(W-w)/2,y=H*0.105-(hh-im.height*(W/im.width))/2;
+ ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(im,x,y,w,hh);
+ const fe=ctx.createLinearGradient(0,y,0,y+hh*0.10);fe.addColorStop(0,'rgba(18,12,30,1)');fe.addColorStop(1,'rgba(18,12,30,0)');ctx.fillStyle=fe;ctx.fillRect(0,y,W,hh*0.10);
+ const fb=ctx.createLinearGradient(0,y+hh*0.80,0,y+hh);fb.addColorStop(0,'rgba(8,5,14,0)');fb.addColorStop(1,'rgba(8,5,14,0.9)');ctx.fillStyle=fb;ctx.fillRect(0,y+hh*0.80,W,hh*0.20);
+ ctx.restore();return true;}
+function drawScene(ctx,W,H,dt){sceneT+=dt;const sky=ctx.createLinearGradient(0,0,0,H*0.6);sky.addColorStop(0,'#120c1e');sky.addColorStop(1,sceneCol);ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
  if(sceneFade<1)sceneFade=Math.min(1,sceneFade+dt/0.8);
  if(scenePrev&&sceneFade<1)drawPhoto(ctx,W,H,scenePrev,1,sceneT);
  if(sceneCur)drawPhoto(ctx,W,H,sceneCur,sceneFade<1?easeIO(sceneFade):1,sceneT);
@@ -128,7 +132,7 @@ function haptic(ms){try{if(navigator.vibrate)navigator.vibrate(ms);}catch(e){}} 
 // ---------- stage ----------
 const canvas=$('stage'),ctx=canvas.getContext('2d');let DPR=1,view=[1,0,0,1,0,0];
 function layout(){const W=window.innerWidth,H=window.innerHeight;DPR=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
- const s=(H*0.5)/1520;view=[s*DPR,0,0,s*DPR,(W*0.30-500*s)*DPR,(H*0.74-1560*s)*DPR];}
+ const s=(H*0.38)/1520;view=[s*DPR,0,0,s*DPR,(W*0.26-500*s)*DPR,(H*0.76-1560*s)*DPR];}
 window.addEventListener('resize',layout);
 function render(P,dt){audioMix(dt);const W=canvas.width/DPR,H=canvas.height/DPR;ctx.setTransform(DPR,0,0,DPR,0,0);drawScene(ctx,W,H,dt);drawGhost(ctx,W,H,dt);
  rigUpdate(P);for(const n of sortedDrawList(P)){if(!ART.on&&!artError&&hunt.state!=='BOOT'&&hunt.state!=='START')continue;if(n.kind==='raster'&&!RASTER[n.id])continue;const m=mmul(view,n.world);ctx.setTransform(m[0],m[1],m[2],m[3],m[4],m[5]);if(n.id==='w-fx')fxDraw(ctx);else if(rasterEnabled&&RASTER[n.id]&&n.id!=='w-jaw')drawRaster(ctx,n.id);else n.draw(ctx,P,n);}
