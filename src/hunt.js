@@ -101,7 +101,7 @@ let sceneCol='#2b2230',sceneTarget='#2b2230',sceneMix=1;
 // photo scenes: graded stills (assets/scenes), cover-fit anchored a little above centre so the landmark stays in the upper two-thirds,
 // slow breathing zoom, 0.8 s crossfade between stations, next station's photo preloaded while you walk.
 // ground: where the landmark meets the pavement, as a fraction of the photo's height; the photo is placed so that line sits just under Agatha's feet
-const SCENE_GROUND={"00-entrance-wide": 0.74, "01-hotdog": 0.97, "02-stairs": 0.72, "03-collective": 0.84, "04-bookstore": 0.86, "05-hive": 0.96, "06-grass": 0.78, "07-stage_1": 0.9, "08-office": 0.985};
+const SCENE_GROUND={"00-entrance-wide": 0.74, "01-hotdog": 0.95, "02-stairs": 0.72, "03-collective": 0.84, "04-bookstore": 0.86, "05-hive": 0.96, "06-grass": 0.78, "07-stage_1": 0.9, "08-office": 0.985};
 const SCENES={};function sceneLoad(url){if(!url)return null;if(!SCENES[url]){const im=new Image();im.decoding='async';im.src=url;SCENES[url]={im,ok:false};im.onload=()=>{SCENES[url].ok=true;};}return SCENES[url];}
 let sceneCur=null,scenePrev=null,sceneFade=1,sceneT=0;
 function sceneSet(url){if(url===sceneCur)return;scenePrev=sceneCur;sceneCur=url;sceneFade=0;sceneLoad(url);}
@@ -112,14 +112,14 @@ function drawPhoto(ctx,W,H,url,alpha,t){const S=url&&SCENES[url];if(!S||!S.ok)re
  const key=(url.match(/([^\/]+)\.jpg$/)||[])[1],g=SCENE_GROUND[key]||0.8,top=H*0.105,need=(H*0.77-top)/(g*im.height),fit=W/im.width,sc=Math.min(fit*1.25,Math.max(fit,need))*z,w=im.width*sc,hh=im.height*sc,x=(W-w)/2,y=Math.max(top,H*0.77-g*hh);   // if the cap is hit, slide the photo down instead so the ground still meets her feet
  ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(im,x,y,w,hh);
  const fe=ctx.createLinearGradient(0,y,0,y+hh*0.10);fe.addColorStop(0,'rgba(18,12,30,1)');fe.addColorStop(1,'rgba(18,12,30,0)');ctx.fillStyle=fe;ctx.fillRect(0,y,W,hh*0.10);
- const fb=ctx.createLinearGradient(0,y+hh*0.80,0,y+hh);fb.addColorStop(0,'rgba(8,5,14,0)');fb.addColorStop(1,'rgba(8,5,14,0.9)');ctx.fillStyle=fb;ctx.fillRect(0,y+hh*0.80,W,hh*0.20);
+ const f0=Math.max(0.8,g)*hh;const fb=ctx.createLinearGradient(0,y+f0,0,y+hh);fb.addColorStop(0,'rgba(8,5,14,0)');fb.addColorStop(1,'rgba(8,5,14,0.85)');ctx.fillStyle=fb;ctx.fillRect(0,y+f0,W,hh-f0);   // fade starts at the ground line, never above it, so the floor under her feet stays visible
  ctx.restore();return true;}
 function drawScene(ctx,W,H,dt){sceneT+=dt;const sky=ctx.createLinearGradient(0,0,0,H*0.6);sky.addColorStop(0,'#120c1e');sky.addColorStop(1,sceneCol);ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
  if(sceneFade<1)sceneFade=Math.min(1,sceneFade+dt/0.8);
  if(scenePrev&&sceneFade<1)drawPhoto(ctx,W,H,scenePrev,1,sceneT);
  if(sceneCur)drawPhoto(ctx,W,H,sceneCur,sceneFade<1?easeIO(sceneFade):1,sceneT);
  const g=ctx.createLinearGradient(0,0,0,H*0.12);g.addColorStop(0,'rgba(0,0,0,0.45)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H*0.12);
- const gy=H*0.74;const gg=ctx.createLinearGradient(0,gy-H*0.02,0,H);gg.addColorStop(0,'rgba(8,5,14,0)');gg.addColorStop(0.12,'rgba(8,5,14,0.35)');gg.addColorStop(1,'rgba(8,5,14,0.8)');ctx.fillStyle=gg;ctx.fillRect(0,gy-H*0.02,W,H-gy+H*0.02);
+ const gy=H*0.74;const gg=ctx.createLinearGradient(0,gy-H*0.02,0,H);gg.addColorStop(0,'rgba(8,5,14,0)');gg.addColorStop(0.25,'rgba(8,5,14,0.2)');gg.addColorStop(1,'rgba(8,5,14,0.8)');ctx.fillStyle=gg;ctx.fillRect(0,gy-H*0.02,W,H-gy+H*0.02);
  for(const f of fog){f.x+=f.v*dt;if(f.x>1.3)f.x=-0.3;if(f.x<-0.3)f.x=1.3;const r=ctx.createRadialGradient(f.x*W,f.y*H,0,f.x*W,f.y*H,f.w*W*0.5);r.addColorStop(0,'rgba(200,210,200,'+f.a+')');r.addColorStop(1,'rgba(200,210,200,0)');ctx.fillStyle=r;ctx.fillRect(0,0,W,H);}
  for(const b of flies){b.p+=dt*b.s;const x=b.x*W+Math.sin(b.p)*18,y=b.y*H+Math.cos(b.p*0.7)*12,a=0.3+0.5*Math.abs(Math.sin(b.p*1.3));ctx.fillStyle='rgba(180,255,120,'+a+')';ctx.beginPath();ctx.arc(x,y,2.2,0,TAU);ctx.fill();}
  if(Math.random()<0.02){ctx.fillStyle='rgba(255,240,200,0.06)';ctx.fillRect(0,0,W,H);}}
