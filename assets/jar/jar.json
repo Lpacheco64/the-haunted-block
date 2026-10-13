@@ -1,0 +1,16 @@
+{
+ "body": "jar_body.png",
+ "mask": "jar_mask.png",
+ "cork": "cork.png",
+ "mouthW": 0.6919104991394148,
+ "mouthY": 0.0,
+ "neckY": 0.10762942779291552,
+ "neckW": 0.657487091222031,
+ "bellyW": 0.9604130808950087,
+ "bellyY": 0.5122615803814714,
+ "cxTop": 0.5,
+ "corkBottomW": 0.23325062034739455,
+ "aspect": 0.7915531335149864,
+ "corkAspect": 1.0951086956521738,
+ "corkW": 0.86
+}

@@ -4,6 +4,13 @@
 
 // ---------- painted art hooks ----------
 const GHOSTART={body:null,props:{},cfg:null,ready:false};
+// ---------- painted jar + cork (assets/jar): glass body with real translucency, solid silhouette mask for clipping the contents, cork on its own ----------
+const JARART={ready:false,body:null,mask:null,cork:null,cfg:null,off:null,offKey:''};
+async function loadJarArt(base){
+  try{const r=await fetch(base+'/jar.json');if(!r.ok)return;const cfg=await r.json();JARART.cfg=cfg;
+    const li=src=>new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src;});
+    JARART.body=await li(base+'/'+cfg.body);JARART.mask=await li(base+'/'+cfg.mask);JARART.cork=await li(base+'/'+cfg.cork);
+    JARART.ready=!!(JARART.body&&JARART.mask&&JARART.cork);}catch(e){}}
 async function loadGhostArt(base){
   try{const r=await fetch(base+'/ghost.json');if(!r.ok)return;const cfg=await r.json();GHOSTART.cfg=cfg;
     const li=src=>new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src;});
@@ -162,29 +169,42 @@ function drawJar(ctx,W,H,dt){
   const gl=0.1+0.04*jar.count+(jar.count>=8?0.18+0.1*Math.sin(T*6):0)+jar.glow*0.4;
   const bg=ctx.createRadialGradient(0,-g.h*0.45,0,0,-g.h*0.45,g.h*0.95);bg.addColorStop(0,'rgba(124,255,74,'+Math.min(0.7,gl)+')');bg.addColorStop(1,'rgba(124,255,74,0)');ctx.fillStyle=bg;ctx.fillRect(-g.h,-g.h*1.5,g.h*2,g.h*1.6);
   // contents, clipped to the glass
-  ctx.save();jarPath(ctx,g);ctx.clip();
+  const JA=JARART.ready?JARART:null,jw=JA?g.h*JA.cfg.aspect:g.wb,jx=-jw/2,jy=-g.h;
+  let octx=ctx;
+  if(JA){const key=Math.round(jw*DPR)+'x'+Math.round(g.h*DPR);if(JA.offKey!==key){JA.off=document.createElement('canvas');JA.off.width=Math.round(jw*DPR);JA.off.height=Math.round(g.h*DPR);JA.offKey=key;}
+    octx=JA.off.getContext('2d');octx.setTransform(1,0,0,1,0,0);octx.clearRect(0,0,JA.off.width,JA.off.height);octx.setTransform(DPR,0,0,DPR,-jx*DPR,-jy*DPR);ctx.save();}
+  else{ctx.save();jarPath(ctx,g);ctx.clip();}
+  {const ctx=octx;
   const gi=ctx.createLinearGradient(0,-g.h,0,0);gi.addColorStop(0,'rgba(124,255,74,0.0)');gi.addColorStop(1,'rgba(124,255,74,'+Math.min(0.5,0.08+0.03*jar.count)+')');ctx.fillStyle=gi;ctx.fillRect(-g.wb,-g.h,g.wb*2,g.h);
   jar.peek=Math.max(0,(jar.peek||0)-dt);const bump=(jar.count>=4?0.25*(jar.count-3):0)+(jar.peek>0?1.6*Math.sin(Math.min(1,(1.2-jar.peek)/1.2)*Math.PI):0);
   for(let i=0;i<jar.count&&i<8;i++){const[sx,sy]=jarSlot(g,i);const hopPh=(T*0.7+i*1.3)%4,hop=bump&&hopPh<0.3?-Math.sin(hopPh/0.3*Math.PI)*g.wb*0.12*bump:0;const wob=Math.sin(T*(2+i*0.3))*g.wb*0.012*(1+bump*2);drawMini(ctx,sx+wob,sy,g.wb*0.3,i,T,hop);}
+  }
+  if(JA){octx.globalCompositeOperation='destination-in';octx.setTransform(1,0,0,1,0,0);octx.drawImage(JA.mask,0,0,JA.off.width,JA.off.height);octx.globalCompositeOperation='source-over';ctx.drawImage(JA.off,jx,jy,jw,g.h);}
   ctx.restore();
+  if(JA){ctx.drawImage(JA.body,jx,jy,jw,g.h);}
+  else{
   // glass: tint, edge light, highlights (key light from the upper left)
-  jarPath(ctx,g);const gg=ctx.createLinearGradient(-g.wb/2,0,g.wb/2,0);gg.addColorStop(0,'rgba(235,248,240,0.30)');gg.addColorStop(0.2,'rgba(200,225,215,0.08)');gg.addColorStop(0.75,'rgba(190,215,205,0.05)');gg.addColorStop(1,'rgba(235,248,240,0.22)');ctx.fillStyle=gg;ctx.fill();
-  ctx.strokeStyle='rgba(225,245,235,0.6)';ctx.lineWidth=Math.max(2,g.h*0.016);ctx.stroke();
-  ctx.fillStyle='rgba(255,255,255,0.4)';rrPath(ctx,-g.wb*0.38,-g.h*0.66,g.wb*0.07,g.h*0.42,g.wb*0.035);ctx.fill();
-  ctx.fillStyle='rgba(255,255,255,0.28)';ctx.beginPath();ctx.ellipse(-g.wb*0.26,-g.h*0.72,g.wb*0.07,g.h*0.025,-0.5,0,TAU);ctx.fill();
-  ctx.fillStyle='rgba(255,255,255,0.14)';rrPath(ctx,g.wb*0.33,-g.h*0.5,g.wb*0.04,g.h*0.3,g.wb*0.02);ctx.fill();
-  // rim
-  ctx.fillStyle='rgba(235,248,240,0.45)';ctx.strokeStyle='rgba(225,245,235,0.7)';ctx.lineWidth=2;rrPath(ctx,-g.wn*0.58,-g.h-g.h*0.025,g.wn*1.16,g.h*0.05,g.h*0.02);ctx.fill();ctx.stroke();
+    jarPath(ctx,g);const gg=ctx.createLinearGradient(-g.wb/2,0,g.wb/2,0);gg.addColorStop(0,'rgba(235,248,240,0.30)');gg.addColorStop(0.2,'rgba(200,225,215,0.08)');gg.addColorStop(0.75,'rgba(190,215,205,0.05)');gg.addColorStop(1,'rgba(235,248,240,0.22)');ctx.fillStyle=gg;ctx.fill();
+    ctx.strokeStyle='rgba(225,245,235,0.6)';ctx.lineWidth=Math.max(2,g.h*0.016);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.4)';rrPath(ctx,-g.wb*0.38,-g.h*0.66,g.wb*0.07,g.h*0.42,g.wb*0.035);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.28)';ctx.beginPath();ctx.ellipse(-g.wb*0.26,-g.h*0.72,g.wb*0.07,g.h*0.025,-0.5,0,TAU);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.14)';rrPath(ctx,g.wb*0.33,-g.h*0.5,g.wb*0.04,g.h*0.3,g.wb*0.02);ctx.fill();
+    // rim
+    ctx.fillStyle='rgba(235,248,240,0.45)';ctx.strokeStyle='rgba(225,245,235,0.7)';ctx.lineWidth=2;rrPath(ctx,-g.wn*0.58,-g.h-g.h*0.025,g.wn*1.16,g.h*0.05,g.h*0.02);ctx.fill();ctx.stroke();
+  
+  }
   // cork lid: lies in the neck when closed, floats up and tilts when open (the jar is "open" at the start of the story)
   let lo=jar.lidO,ly=-g.h-lo*g.h*0.45,lrot=lo*(0.35+0.12*Math.sin(T*2.4)),lx=lo*g.wn*0.25;
   if(jar.count>=8&&!jar.released){ly-=g.h*0.02*(1+Math.sin(T*9));lrot+=0.05*Math.sin(T*13);}
   if(jar.blow){const b=jar.blow;b.t+=dt;b.vy+=420*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.rot+=b.vr*dt;lx=b.x;ly=-g.h+b.y;lrot=b.rot;}
-  const cw=g.wn*1.02,ch=g.h*0.15;if(jar.park>0&&!jar.blow){lx=lerp(lx,-g.wb*0.74,jar.park);ly=lerp(ly,-ch*0.2,jar.park);lrot=lerp(lrot,-1.45,jar.park);}   // before the first capture the cork lies on the ground: the jar was left open
+  const cw=JA?jw*JA.cfg.mouthW*JA.cfg.corkW:g.wn*1.02,ch=JA?cw/JA.cfg.corkAspect:g.h*0.15;if(JA&&jar.park<=0&&!jar.blow)ly+=g.h*0.13*(1-lo);   // plugged into the neck when closed
+  if(jar.park>0&&!jar.blow){lx=lerp(lx,-g.wb*0.74,jar.park);ly=lerp(ly,-ch*0.2,jar.park);lrot=lerp(lrot,-1.45,jar.park);}   // before the first capture the cork lies on the ground: the jar was left open
   if(!(jar.blow&&jar.blow.t>2.2)){ctx.save();ctx.translate(lx,ly);ctx.rotate(lrot);
+    if(JA){ctx.drawImage(JA.cork,-cw/2,-ch,cw,ch);ctx.restore();}else{
     const cg=ctx.createLinearGradient(-cw/2,0,cw/2,0);cg.addColorStop(0,'#8a6a48');cg.addColorStop(0.35,'#b58d5e');cg.addColorStop(1,'#6e5236');
     ctx.beginPath();ctx.moveTo(-cw*0.5,-ch);ctx.lineTo(cw*0.5,-ch);ctx.lineTo(cw*0.42,0);ctx.lineTo(-cw*0.42,0);ctx.closePath();ctx.fillStyle=cg;ctx.fill();ctx.strokeStyle='rgba(40,25,10,0.5)';ctx.lineWidth=1.5;ctx.stroke();
     ctx.strokeStyle='rgba(60,40,20,0.35)';ctx.lineWidth=1;for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(-cw*0.4+i*cw*0.2,-ch*0.9);ctx.quadraticCurveTo(-cw*0.36+i*cw*0.2,-ch*0.5,-cw*0.38+i*cw*0.2,-ch*0.1);ctx.stroke();}
-    ctx.fillStyle='rgba(255,230,190,0.25)';ctx.beginPath();ctx.ellipse(0,-ch,cw*0.5,ch*0.18,0,0,TAU);ctx.fill();ctx.restore();}
+    ctx.fillStyle='rgba(255,230,190,0.25)';ctx.beginPath();ctx.ellipse(0,-ch,cw*0.5,ch*0.18,0,0,TAU);ctx.fill();ctx.restore();}}
   // label
   ctx.fillStyle='rgba(255,255,255,0.85)';ctx.font='700 '+Math.round(g.h*0.15)+'px Georgia';ctx.textAlign='center';ctx.fillText(jar.count+' / 8',0,g.h*0.22);
   ctx.restore();
