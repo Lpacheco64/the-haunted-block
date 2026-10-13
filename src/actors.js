@@ -76,6 +76,7 @@ function drawGhostFigure(ctx,o){
   const size=o.size,T=o.T,s=o.station,w=size*0.78,h=size*1.25,bodyCol='rgba(230,227,218,0.97)';
   let geo=null,pw=w;
   if(GHOSTART.body){const img=GHOSTART.body,c=GHOSTART.cfg||{},bh=size*(c.bodyHeight||1.35),bw=bh*img.width/img.height,top=size*0.55-bh,E=c.eyes||{y:0.31,dx:0.045,r:0.034,cx:-0.02,veil:0.3},eb=o.eyeBoost||1;pw=bw*0.9;
+    if(o.halo!==false){const hg=ctx.createRadialGradient(0,top+bh*0.45,bh*0.05,0,top+bh*0.45,bh*0.62);hg.addColorStop(0,'rgba(215,230,255,0.42)');hg.addColorStop(0.6,'rgba(200,220,255,0.18)');hg.addColorStop(1,'rgba(200,220,255,0)');ctx.fillStyle=hg;ctx.fillRect(-bw,top-bh*0.2,bw*2,bh*1.4);}
     ctx.drawImage(img,-bw/2,top,bw,bh);geo={y:top+bh*E.y,dx:bh*E.dx*(0.6+0.4*eb),r:bh*E.r*eb,cx:bh*(E.cx||0),top,bh,bw,veil:E.veil};}
   else{
     const g=ctx.createLinearGradient(0,-h*0.6,0,h*0.5);g.addColorStop(0,'rgba(236,233,224,0.96)');g.addColorStop(0.7,'rgba(222,220,212,0.9)');g.addColorStop(1,'rgba(222,220,212,0.15)');
@@ -137,7 +138,7 @@ function jarCapture(){if(ghost.st==='captured'||ghost.st==='gone')return;ghost.s
 function jarRelease(){if(jar.released)return;jar.released=true;if(typeof startFinaleMusic==='function')startFinaleMusic();jar.glow=1;jar.blow={x:0,y:0,vx:(Math.random()-0.3)*60,vy:-260,rot:0,vr:6,t:0};shake();haptic([120,60,40,60,40,60,80]);
   const W=canvas.width/DPR,H=canvas.height/DPR,g=jarGeom(W,H);jarFx(g.x,g.y-g.h,70,'rgba(124,255,74,0.9)',260,1.2);
   for(let i=0;i<Math.min(8,HUNT.stations.length);i++){const st=HUNT.stations[i];jar.party.push({i,st,x:g.x+(Math.random()-0.5)*g.wn,y:g.y-g.h,vx:(Math.random()-0.5)*W*1.1,vy:-H*(0.5+Math.random()*0.5),ph:Math.random()*TAU,r:0.18+Math.random()*0.2,t:0});}}
-function drawMini(ctx,x,y,size,i,T,hop){const st=HUNT.stations[i];ctx.save();ctx.translate(x,y+hop);ctx.rotate(Math.sin(T*1.3+i)*0.08);ctx.globalAlpha=0.95;drawGhostFigure(ctx,{size,T:T+i,station:st,look:[Math.sin(T*0.7+i)*0.6,0.2],lid:(GTRAITS[st.ghost]||{lid:0.3}).lid*0.6,blink:blinkAmt(i*13+5,T),prop:size>jarMiniProp,eyeBoost:1.7});ctx.restore();}
+function drawMini(ctx,x,y,size,i,T,hop){const st=HUNT.stations[i];ctx.save();ctx.translate(x,y+hop);ctx.rotate(Math.sin(T*1.3+i)*0.08);ctx.globalAlpha=0.95;drawGhostFigure(ctx,{halo:false,size,T:T+i,station:st,look:[Math.sin(T*0.7+i)*0.6,0.2],lid:(GTRAITS[st.ghost]||{lid:0.3}).lid*0.6,blink:blinkAmt(i*13+5,T),prop:size>jarMiniProp,eyeBoost:1.7});ctx.restore();}
 const jarMiniProp=0; // props visible on every mini
 function jarPoke(){if(jar.released)return false;jar.rattle=Math.max(jar.rattle,0.9);jar.sq=Math.max(jar.sq,0.5);jar.peek=1.2;if(typeof haptic==='function')haptic(jar.count?40:15);return true;}
 function drawJar(ctx,W,H,dt){
