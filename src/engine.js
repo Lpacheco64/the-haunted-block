@@ -1,3 +1,4 @@
+const ENGINE_VERSION='2026-10-13d';
 // Agatha character engine — rig, animator, painted-layer loader, compositors. Shared by lab/ and the hunt.
 'use strict';
 /* ===================================================================

@@ -1,3 +1,4 @@
+const ACTORS_VERSION='2026-10-13d';
 // actors.js — ghosts and the jar.
 // Placeholder art is drawn in code; painted art drops in via assets/ghosts/ghost.json (see docs/GHOST_DESIGN_BRIEF.md).
 // Globals used from engine.js: TAU, lerp, clamp, easeIO, rrPath.  From hunt.js (at call time): HUNT, hunt, shake, haptic, canvas, DPR.

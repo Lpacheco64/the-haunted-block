@@ -5,6 +5,7 @@
 // ===================================================================
 
 // ---------- content package (hunt.json inline for the artifact) ----------
+const HB_VERSION='2026-10-13d';
 const HUNT={id:'haunted-block-2026',title:'The Block Is Haunted',
  stations:[
   {n:1,code:'hb1',scene:'assets/scenes/01-hotdog.jpg',name:'Entry Hot Dog Stand',ghost:'mustard',accent:'#e4c33a',prop:'hotdog',color:'#2b2230',
@@ -136,7 +137,7 @@ function layout(){const W=window.innerWidth,H=window.innerHeight;DPR=Math.min(wi
  const s=(H*0.38)/1520;view=[s*DPR,0,0,s*DPR,(W*0.26-500*s)*DPR,(H*0.76-1560*s)*DPR];}
 window.addEventListener('resize',layout);
 function render(P,dt){audioMix(dt);const W=canvas.width/DPR,H=canvas.height/DPR;ctx.setTransform(DPR,0,0,DPR,0,0);drawScene(ctx,W,H,dt);drawGhost(ctx,W,H,dt);
- rigUpdate(P);for(const n of sortedDrawList(P)){if(!ART.on&&!artError&&hunt.state!=='BOOT'&&hunt.state!=='START')continue;if(n.kind==='raster'&&!RASTER[n.id])continue;const m=mmul(view,n.world);ctx.setTransform(m[0],m[1],m[2],m[3],m[4],m[5]);if(n.id==='w-fx')fxDraw(ctx);else if(rasterEnabled&&RASTER[n.id]&&n.id!=='w-jaw')drawRaster(ctx,n.id);else n.draw(ctx,P,n);}
+ rigUpdate(P);for(const n of sortedDrawList(P)){if(!ART.on&&!artError&&hunt.state!=='BOOT'&&hunt.state!=='START')continue;if(n.kind==='raster'&&!RASTER[n.id])continue;const m=mmul(view,n.world);ctx.setTransform(m[0],m[1],m[2],m[3],m[4],m[5]);if(n.id==='w-fx')fxDraw(ctx);else if(n.id==='w-hat-tip'&&ART.on){}else if(rasterEnabled&&RASTER[n.id]&&n.id!=='w-jaw')drawRaster(ctx,n.id);else n.draw(ctx,P,n);}
  ctx.setTransform(DPR,0,0,DPR,0,0);drawJar(ctx,W,H,dt);}
 const anim=new Animator();let P=defaults(),last=performance.now(),hidden=false;
 function loop(t){let dt=Math.min((t-last)/1000,0.05);last=t;if(!hidden){now+=dt;P=anim.update(dt);fxUpdate(dt,P);render(P,dt);tickWaiters();chatterTick();}devRefresh();requestAnimationFrame(loop);}
@@ -198,4 +199,4 @@ function tapAt(cx,cy){if(hunt.state!=='STATION'&&hunt.state!=='DONE')return;
  if(anim.speech||hunt.busy)return;
  for(const [id,px,py,r,act] of TAPS){const [sx,sy,k]=screenOf(id,px,py);if(Math.hypot(cx-sx,cy-sy)<r*k){haptic(20);if(act==='winkL'||act==='winkR')anim.play('wink',{st:{side:act.slice(-1)}});else anim.play(act);if(act==='sneeze')setTimeout(()=>{const [fx,fy]=worldPoint('w-flask-mouth');for(let i=0;i<8;i++)emit(fx,fy,'bubble');},700);chatterAt=Math.max(chatterAt,now+20);return;}}}
 canvas.addEventListener('pointerdown',e=>{if(e.target!==canvas)return;tapAt(e.clientX,e.clientY);},{passive:true});
-layout();requestAnimationFrame(loop);
+layout();requestAnimationFrame(loop);$('ver').textContent='build '+HB_VERSION+' · engine '+(typeof ENGINE_VERSION==='string'?ENGINE_VERSION:'old')+' · actors '+(typeof ACTORS_VERSION==='string'?ACTORS_VERSION:'old');
