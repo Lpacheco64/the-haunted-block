@@ -1,4 +1,4 @@
-const ACTORS_VERSION='2026-10-13d';
+const ACTORS_VERSION='2026-10-13i';
 // actors.js — ghosts and the jar.
 // Placeholder art is drawn in code; painted art drops in via assets/ghosts/ghost.json (see docs/GHOST_DESIGN_BRIEF.md).
 // Globals used from engine.js: TAU, lerp, clamp, easeIO, rrPath.  From hunt.js (at call time): HUNT, hunt, shake, haptic, canvas, DPR.
@@ -77,7 +77,7 @@ function drawGhostFigure(ctx,o){
   const size=o.size,T=o.T,s=o.station,w=size*0.78,h=size*1.25,bodyCol='rgba(230,227,218,0.97)';
   let geo=null,pw=w;
   if(GHOSTART.body){const img=GHOSTART.body,c=GHOSTART.cfg||{},bh=size*(c.bodyHeight||1.35),bw=bh*img.width/img.height,top=size*0.55-bh,E=c.eyes||{y:0.31,dx:0.045,r:0.034,cx:-0.02,veil:0.3},eb=o.eyeBoost||1;pw=bw*0.9;
-    if(o.halo!==false&&s&&s.accent){ctx.save();ctx.shadowColor=s.accent;ctx.shadowBlur=Math.max(10,bh*0.09);ctx.drawImage(img,-bw/2,top,bw,bh);ctx.restore();}   // the station's accent glow, as in the finale
+    if(o.halo!==false&&s&&s.accent){ctx.save();ctx.shadowColor=s.accent;ctx.shadowBlur=Math.max(16,bh*0.16);ctx.drawImage(img,-bw/2,top,bw,bh);ctx.drawImage(img,-bw/2,top,bw,bh);ctx.restore();}   // the station's accent glow, as in the finale
     ctx.drawImage(img,-bw/2,top,bw,bh);geo={y:top+bh*E.y,dx:bh*E.dx*(0.6+0.4*eb),r:bh*E.r*eb,cx:bh*(E.cx||0),top,bh,bw,veil:E.veil};}
   else{
     const g=ctx.createLinearGradient(0,-h*0.6,0,h*0.5);g.addColorStop(0,'rgba(236,233,224,0.96)');g.addColorStop(0.7,'rgba(222,220,212,0.9)');g.addColorStop(1,'rgba(222,220,212,0.15)');
@@ -97,7 +97,7 @@ const ghost={st:'idle',x:0,y:0,sx:1,sy:1,alpha:1,t:0,idx:-1,appear:1,notice:0,pa
 const ROAM_SPOTS=[['home',0,0,5],['home',0,0,5],['jar',0.10,0.21,4],['hat',-0.40,-0.20,4],['high',-0.12,-0.22,3],['sky',0.02,-0.24,3],['near',-0.22,0.06,4]];
 function ghostPoke(){if(ghost.st!=='idle'||ghost.flee>0||ghost.appear<1)return false;ghost.flee=0.001;ghost.roam.spot='home';ghost.roam.tx=0;ghost.roam.ty=0;if(typeof haptic==='function')haptic(25);return true;}
 
-const GSIZE=0.17;   // ghost size as a fraction of screen height (was 0.13; props scale with it)
+const GSIZE=0.20;   // ghost size as a fraction of screen height (was 0.13; props scale with it)
 function ghostHome(W,H){return [W*0.74,H*0.76-H*0.20];}
 function ghostNotice(){ghost.notice=1.4;}
 function blinkAmt(seed,T){const ph=(T*0.31+seed/97)%1;return ph<0.035?Math.sin(ph/0.035*Math.PI):0;}
