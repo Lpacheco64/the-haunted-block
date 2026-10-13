@@ -5,7 +5,7 @@
 // ===================================================================
 
 // ---------- content package (hunt.json inline for the artifact) ----------
-const HB_VERSION='2026-10-13d';
+const HB_VERSION='2026-10-13e';
 const HUNT={id:'haunted-block-2026',title:'The Block Is Haunted',
  stations:[
   {n:1,code:'hb1',scene:'assets/scenes/01-hotdog.jpg',name:'Entry Hot Dog Stand',ghost:'mustard',accent:'#e4c33a',prop:'hotdog',color:'#2b2230',
