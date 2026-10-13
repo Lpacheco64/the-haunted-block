@@ -5,7 +5,7 @@
 // ===================================================================
 
 // ---------- content package (hunt.json inline for the artifact) ----------
-const HB_VERSION='2026-10-13j';
+const HB_VERSION='2026-10-13k';
 const HUNT={id:'haunted-block-2026',title:'The Block Is Haunted',
  stations:[
   {n:1,code:'hb1',scene:'assets/scenes/01-hotdog.jpg',name:'Entry Hot Dog Stand',ghost:'mustard',accent:'#e4c33a',prop:'hotdog',color:'#2b2230',
@@ -102,7 +102,7 @@ let sceneCol='#2b2230',sceneTarget='#2b2230',sceneMix=1;
 // photo scenes: graded stills (assets/scenes), cover-fit anchored a little above centre so the landmark stays in the upper two-thirds,
 // slow breathing zoom, 0.8 s crossfade between stations, next station's photo preloaded while you walk.
 // ground: where the landmark meets the pavement, as a fraction of the photo's height; the photo is placed so that line sits just under Agatha's feet
-const SCENE_GROUND={"00-entrance-wide": 0.74, "01-hotdog": 0.95, "02-stairs": 0.72, "03-collective": 0.84, "04-bookstore": 0.86, "05-hive": 0.96, "06-grass": 0.78, "07-stage_1": 0.9, "08-office": 0.985};
+const SCENE_GROUND={"00-entrance-wide": 0.74, "01-hotdog": 0.95, "02-stairs": 0.72, "03-collective": 0.84, "04-bookstore": 0.74, "05-hive": 0.96, "06-grass": 0.78, "07-stage_1": 0.9, "08-office": 0.985};
 const SCENES={};function sceneLoad(url){if(!url)return null;if(!SCENES[url]){const im=new Image();im.decoding='async';im.src=url;SCENES[url]={im,ok:false};im.onload=()=>{SCENES[url].ok=true;};}return SCENES[url];}
 let sceneCur=null,scenePrev=null,sceneFade=1,sceneT=0;
 function sceneSet(url){if(url===sceneCur)return;scenePrev=sceneCur;sceneCur=url;sceneFade=0;sceneLoad(url);}
