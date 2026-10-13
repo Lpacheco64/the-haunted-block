@@ -1,4 +1,4 @@
-const ENGINE_VERSION='2026-10-13h';
+const ENGINE_VERSION='2026-10-13j';
 // Agatha character engine — rig, animator, painted-layer loader, compositors. Shared by lab/ and the hunt.
 'use strict';
 /* ===================================================================
@@ -26,7 +26,7 @@ const PARAMS={
  'nose.rot':[0,-15,15],
  'mouth.open':[0,0,1],'jaw.scale':[1,0,1],'jaw.drop':[0,0,1],
  'arm.L.shoulder':[0,-60,170],'arm.L.elbow':[0,-140,60],'arm.R.shoulder':[8,-60,170],'arm.R.elbow':[-15,-140,60],'flask.glow':[0,0,1],
- 'hat.squash':[0,-0.03,0.03],'hat.lift':[0,0,6],'leg.L.rot':[0,-40,40],'leg.R.rot':[0,-40,40],'fx.stars':[0,0,1],
+ 'hat.squash':[0,-0.1,0.1],'hat.lift':[0,-90,6],'leg.L.rot':[0,-40,40],'leg.R.rot':[0,-40,40],'fx.stars':[0,0,1],
  'hatTip.rot':[0,-40,40],'charm.rot':[0,-60,60],'hair.L.rot':[0,-20,20],'hair.R.rot':[0,-20,20],'nose.jiggle':[0,-10,10],'shawl.rot':[0,-10,10],'skirt.rot':[0,-10,10],'leg.lag':[0,-20,20],
 };
 const ENUMS={'mouth.shape':'neutral','hand.L.pose':'rest','hand.R.pose':'grip'};
@@ -348,6 +348,7 @@ const ACTIONS={
  hatbump:{priority:36,duration:1.2,interruptibleAfter:0.4,fn(u,e,o){const k=Math.sin(Math.PI*u),hop=Math.max(0,Math.sin(e*TAU*1.25))*(e<0.8?1:0);o['hat.lift']=55*hop;o['hat.squash']=0.12*hop-0.1*(e<0.1?1:0);o['head.y']=-6*hop;o['brow.L.angle']=-22*k;o['brow.R.angle']=-22*k;o['brow.L.raise']=-0.4*k;o['brow.R.raise']=-0.4*k;o['eye.squint']=0.7*k;o['mouth.shape']=u<0.9?'hmm':'neutral';o['head.rot']=4*Math.sin(e*TAU*2)*k;o['gaze.y']=-0.8*k;o['arm.L.shoulder']=120*k*(e>0.35?1:0);o['arm.L.elbow']=-100*k*(e>0.35?1:0);}},
  wink:{priority:36,duration:0.8,interruptibleAfter:0.2,locks:{blink:true},fn(u,e,o,st){const side=st.side||'L',k=Math.sin(Math.PI*Math.min(1,u*1.1));o['eye.'+side+'.openU']=1-k;o['eye.'+side+'.openL']=1-0.5*k;o['brow.'+side+'.raise']=-0.5*k;o['brow.'+(side==='L'?'R':'L')+'.raise']=0.6*k;o['head.rot']=(side==='L'?5:-5)*k;o['mouth.shape']=u<0.9?'sly':'neutral';o['gaze.x']=0;o['gaze.y']=0.1;}},
  bubble:{priority:36,duration:1.4,interruptibleAfter:0.4,fn(u,e,o){const k=Math.sin(Math.PI*u);o['flask.glow']=k;o['arm.R.shoulder']=8+40*k;o['arm.R.elbow']=-15-30*k;o['gaze.x']=0.6*k;o['gaze.y']=0.9*k;o['head.pitch']=0.4*k;o['head.rot']=8*k;o['brow.R.raise']=0.6*k;o['brow.L.raise']=0.2*k;o['mouth.shape']=k>0.5?'talk-o':'neutral';o['eye.scale']=1+0.08*k;}},
+ toe:{priority:36,duration:1.1,interruptibleAfter:0.3,fn(u,e,o,st){const h=u<0.45?Math.sin(u/0.45*Math.PI):0,hold=u>0.1&&u<0.8?1:0;o['body.y']=-55*h;o['body.squash']=-0.2*h+(u>0.45&&u<0.6?0.25*Math.sin((u-0.45)/0.15*Math.PI):0);o['leg.L.rot']=-30*hold;o['leg.R.rot']=10*hold;o['arm.L.shoulder']=60*hold;o['arm.R.shoulder']=50*hold;o['mouth.shape']=hold?'talk-wide-o':'neutral';o['jaw.scale']=hold;o['eye.L.openU']=1;o['eye.R.openU']=1;o['brow.L.raise']=hold;o['brow.R.raise']=hold;o['gaze.y']=0.9;o['head.pitch']=0.4*hold;o['hat.lift']=6*h;}},
  sweep:{priority:100,duration:12,interruptibleAfter:0,locks:{mouth:true,gaze:true,blink:true},fn:sweepFn},
 };
 const TALK_SETS={
@@ -422,7 +423,7 @@ class Animator{
    out['eye.L.size']+=amp*0.015*sn(1.7);out['eye.R.size']+=amp*0.015*sn(1.7,1);
    // random idle gags: only when nothing scripted is happening
    const g=this.gag;
-   if(!g&&!this.action&&!sp3&&(this.mood==='neutral'||this.mood==='happy')&&t>=(this.nextGag==null?(this.nextGag=t+4):this.nextGag)){const ids=['doubletake','shiver','hop','hatwiggle','sniff','shrug','peek'];let id;do{id=ids[Math.floor(rng()*ids.length)];}while(id===this.lastGag);this.lastGag=id;this.gag={id,t0:t,dur:{doubletake:1.5,shiver:1.0,hop:0.8,hatwiggle:1.3,sniff:1.3,shrug:1.2,peek:1.8}[id]};this.nextGag=t+5+rng()*5;this.log('gag '+id);}
+   if(!g&&!this.action&&!sp3&&(this.mood==='neutral'||this.mood==='happy')&&t>=(this.nextGag==null?(this.nextGag=t+4):this.nextGag)){const ids=['doubletake','shiver','hop','hatwiggle','sniff','shrug','peek','hatdrop','fakesneeze','flaskburp','hover','flyswat','jarpeek','stretch'];let id;do{id=ids[Math.floor(rng()*ids.length)];}while(id===this.lastGag);this.lastGag=id;this.gag={id,t0:t,dur:{doubletake:1.5,shiver:1.0,hop:0.8,hatwiggle:1.3,sniff:1.3,shrug:1.2,peek:1.8,hatdrop:3.4,fakesneeze:4.2,flaskburp:3.0,hover:3.2,flyswat:3.6,jarpeek:3.0,stretch:2.8}[id],fx:{}};if(typeof onGag==='function')onGag(id);this.nextGag=t+5+rng()*5;this.log('gag '+id);}
    const G=this.gag;if(G){if(this.action||sp3){this.gag=null;}else{const u=(t-G.t0)/G.dur;if(u>=1)this.gag=null;else{const e=Math.sin(Math.PI*u),w=Math.sin(u*TAU);
     if(G.id==='doubletake'){out['head.rot']+=-7*e*(u<0.5?1:-0.6)*1;out['head.yaw']+=(u<0.4?-0.5:0.5)*e;out['eye.scale']=lerp(out['eye.scale'],1.12,e);out['brow.L.raise']+=e;out['brow.R.raise']+=e;out['head.y']+=-14*e;}
     else if(G.id==='shiver'){const sh=e*Math.sin(t*55);out['head.x']+=4*sh;out['body.rot']+=1.5*sh;out['brow.L.angle']+=8*e;out['brow.R.angle']+=8*e;out['arm.L.shoulder']+=6*sh;}
@@ -430,6 +431,30 @@ class Animator{
     else if(G.id==='hatwiggle'){out['hat.lift']+=16*e;out['hat.squash']+=0.05*Math.sin(u*TAU*3)*e;out['head.rot']+=3*Math.sin(u*TAU*2)*e;out['brow.L.raise']+=0.6*e;out['brow.R.raise']+=0.6*e;}
     else if(G.id==='sniff'){out['nose.rot']+=9*Math.sin(u*TAU*4)*e;out['head.pitch']+=-0.35*e;out['head.y']+=-6*e;out['body.squash']+=-0.05*e*Math.abs(Math.sin(u*TAU*2));}
     else if(G.id==='shrug'){out['arm.L.shoulder']+=20*e;out['arm.R.shoulder']+=12*e;out['head.rot']+=6*e;out['brow.L.raise']+=0.7*e;out['brow.R.raise']+=0.2*e;out['body.hunch']+=-0.2*e;out['body.y']+=-10*e;}
+    else if(G.id==='hatdrop'){const d=u<0.12?u/0.12:1,up=u>0.78?(u-0.78)/0.22:0,gr=u>0.15&&u<0.75?Math.sin((u-0.15)/0.6*Math.PI):0;   // hat drops over her eyes, she gropes, shoves it up, glares
+      out['hat.lift']=-85*d*(1-up)+(up>0?6*Math.sin(up*Math.PI):0);
+      out['hat.squash']+=0.08*d*(1-up);out['head.pitch']+=0.3*d*(1-up);out['arm.L.shoulder']+=70*gr+(up?60*Math.sin(up*Math.PI):0);out['arm.R.shoulder']+=55*gr;out['arm.L.elbow']+=-40*gr;out['arm.R.elbow']+=-40*gr;out['hand.L.pose']='open';out['hand.R.pose']='open';out['head.rot']+=8*Math.sin(u*TAU*3)*gr;out['body.rot']+=3*Math.sin(u*TAU*2)*gr;
+      if(up>0.6){out['brow.L.angle']+=14;out['brow.R.angle']+=14;out['brow.L.raise']+=-0.4;out['brow.R.raise']+=-0.4;out['eye.squint']=0.6;out['gaze.x']=0;out['gaze.y']=0.1;out['mouth.shape']='hmm';}}
+    else if(G.id==='fakesneeze'){const seg=u<0.72?u/0.72:null;   // three wind-ups that go nowhere, then the real one
+      if(seg!==null){const k=(seg*3)%1,n=Math.floor(seg*3),b=Math.sin(k*Math.PI)*(0.5+0.25*n);out['head.pitch']+=-0.5*b;out['head.y']+=-18*b;out['brow.L.raise']+=b;out['brow.R.raise']+=b;out['eye.L.openU']=out['eye.R.openU']=Math.min(1,0.4+0.6*b);out['mouth.shape']=b>0.3?'talk-o':'neutral';out['jaw.scale']=0.3+0.7*b;out['nose.rot']+=10*Math.sin(t*25)*b;out['body.hunch']+=-0.3*b;out['hat.lift']=Math.max(out['hat.lift'],6*b);}
+      else{const v=(u-0.72)/0.28,sn=v<0.3?v/0.3:0,af=v>=0.3?1-(v-0.3)/0.7:0;out['head.pitch']+=0.6*sn+0.3*af;out['head.y']+=34*sn;out['body.squash']+=-0.3*sn+0.1*af;out['body.hunch']+=0.4*sn;out['eye.L.openU']=out['eye.R.openU']=v<0.6?0:0.9;out['mouth.shape']=v<0.6?'talk-wide-a':'neutral';out['nose.rot']+=16*sn;out['hat.lift']=6;out['flask.glow']+=sn;if(sn>0.5&&!G.fx.sn){G.fx.sn=1;if(typeof gagFx==='function')gagFx('sneeze');}}}
+    else if(G.id==='flaskburp'){const sw=u<0.6?u/0.6:1,pop=u>0.62&&u<0.72?1:0,af=u>0.7?Math.max(0,1-(u-0.7)/0.3):0;   // a bubble swells from the flask, she stares, it pops in her face
+      out['flask.glow']+=0.9*sw;out['arm.R.shoulder']+=30*sw;out['arm.R.elbow']+=-25*sw;out['gaze.x']=0.7*sw;out['gaze.y']=0.9*sw;out['head.pitch']+=0.4*sw;out['head.rot']+=6*sw;out['eye.scale']=1+0.15*sw;out['brow.L.raise']+=0.3*sw;out['brow.R.raise']+=0.6*sw;
+      if(pop||af){out['eye.L.openU']=out['eye.R.openU']=af>0.6?0:1;out['head.y']+=-12*af;out['head.pitch']+=-0.4*af;out['hat.lift']=Math.max(out['hat.lift'],20*af);out['mouth.shape']=af>0.3?'surprise':'neutral';out['brow.L.raise']+=af;out['brow.R.raise']+=af;}
+      G.fx.sw=sw;if(pop&&!G.fx.p){G.fx.p=1;if(typeof gagFx==='function')gagFx('burp');}}
+    else if(G.id==='hover'){const r=u<0.35?u/0.35:1,wob=u>0.35&&u<0.7?Math.sin((u-0.35)/0.35*Math.PI):0,drop=u>0.7?(u-0.7)/0.3:0;   // tries to float like a proper witch; wobbles; thud
+      const h=r*(1-Math.min(1,drop*1.6));out['body.hover']+=0.5*h;out['body.rot']+=12*Math.sin(t*9)*wob;out['body.x']+=16*Math.sin(t*5)*wob;out['arm.L.shoulder']+=90*r*(1-drop)+40*Math.sin(t*12)*wob;out['arm.R.shoulder']+=80*r*(1-drop);out['leg.L.rot']+=-25*wob;out['leg.R.rot']+=25*wob;out['brow.L.raise']+=0.8*r*(1-drop);out['brow.R.raise']+=0.8*r*(1-drop);out['eye.scale']=1+0.1*wob;out['mouth.shape']=wob>0.5?'scared':(drop>0.5?'hmm':'grin');
+      if(drop>0.5){const th=Math.sin((drop-0.5)/0.5*Math.PI);out['body.squash']+=0.35*th;out['hat.lift']=Math.max(out['hat.lift'],14*th);if(!G.fx.th){G.fx.th=1;if(typeof gagFx==='function')gagFx('thud');}}}
+    else if(G.id==='flyswat'){const fl=u<0.7?1:0,sw=u>0.6&&u<0.72?Math.sin((u-0.6)/0.12*Math.PI):0,bonk=u>0.7?Math.max(0,1-(u-0.7)/0.3):0;   // a fly circles her nose; cross-eyed; swat; bonk
+      G.fx.fly=fl?[Math.cos(u*TAU*3.5)*0.9,Math.sin(u*TAU*5.2)*0.5]:null;out['gaze.x']=fl?Math.cos(u*TAU*3.5)*0.9:0;out['gaze.y']=fl?0.5+0.4*Math.sin(u*TAU*5.2):0.1;out['head.rot']+=4*Math.sin(u*TAU*3.5)*fl;out['brow.L.angle']+=8*fl;out['brow.R.angle']+=-8*fl;
+      out['arm.L.shoulder']+=120*sw;out['arm.L.elbow']+=-90*sw;out['hand.L.pose']=sw>0.2?'open':out['hand.L.pose'];out['nose.rot']+=-14*bonk;out['head.y']+=8*bonk;out['eye.L.openU']=out['eye.R.openU']=bonk>0.6?0:1;out['mouth.shape']=bonk>0.3?'talk-o':out['mouth.shape'];out['head.rot']+=-6*bonk;if(sw>0.9&&!G.fx.b){G.fx.b=1;if(typeof gagFx==='function')gagFx('bonk');}}
+    else if(G.id==='jarpeek'){const lean=u<0.4?u/0.4:(u<0.6?1:Math.max(0,1-(u-0.6)/0.15)),boo=u>0.55&&u<0.7?1:0,jump=u>0.6?Math.max(0,1-(u-0.6)/0.4):0;   // leans to the jar; a captured ghost pops up and boos; she jumps
+      out['body.rot']+=14*lean;out['body.x']+=30*lean;out['head.pitch']+=0.5*lean;out['head.yaw']+=0.8*lean;out['gaze.x']=1*lean;out['gaze.y']=0.8*lean;out['eye.squint']=0.5*lean*(1-jump);
+      out['body.y']+=-40*jump;out['body.squash']+=-0.2*jump;out['eye.scale']=1+0.2*jump;out['brow.L.raise']+=jump;out['brow.R.raise']+=jump;out['mouth.shape']=jump>0.3?'surprise':out['mouth.shape'];out['arm.L.shoulder']+=60*jump;out['arm.R.shoulder']+=60*jump;out['hat.lift']=Math.max(out['hat.lift'],18*jump);
+      G.fx.boo=boo||jump>0.5;if(boo&&!G.fx.bb){G.fx.bb=1;if(typeof gagFx==='function')gagFx('boo');}}
+    else if(G.id==='stretch'){const s2=Math.sin(Math.PI*Math.min(1,u*1.1)),cr=u>0.3&&u<0.7?Math.sin(t*40)*0.5:0;   // big yawn-stretch; knees creak
+      out['arm.L.shoulder']+=150*s2;out['arm.R.shoulder']+=140*s2;out['arm.L.elbow']+=-20*s2;out['arm.R.elbow']+=-20*s2;out['hand.L.pose']=out['hand.R.pose']='open';out['body.hunch']+=-0.5*s2;out['body.y']+=-14*s2;out['head.pitch']+=-0.5*s2;out['mouth.shape']=s2>0.5?'talk-wide-o':'neutral';out['jaw.scale']=s2;out['eye.L.openU']=out['eye.R.openU']=1-0.8*s2;
+      out['body.rot']+=3*cr;out['leg.L.rot']+=6*cr;out['leg.R.rot']+=-6*cr;out['body.x']+=4*cr;if(u>0.3&&!G.fx.c){G.fx.c=1;if(typeof gagFx==='function')gagFx('creak');}}
     else if(G.id==='peek'){out['head.yaw']+=0.9*Math.sin(u*TAU)*(u<0.5?1:1);out['head.rot']+=-5*Math.sin(u*TAU);out['brow.L.angle']+=-10*e;out['brow.R.angle']+=-10*e;out['eye.squint']=lerp(out['eye.squint'],0.5,e);}
    }}}
   }
@@ -475,7 +500,10 @@ const FX=[];function emit(x,y,kind){if(FX.length>60)FX.shift();FX.push({x,y,vx:(
 function fxUpdate(dt,P){if(P['flask.glow']>0.3&&rng()<P['flask.glow']*0.6){const [x,y]=worldPoint('w-flask-mouth');emit(x,y,'bubble');}
  if(P['fx.stars']>0.5&&rng()<0.5){const [x,y]=worldPoint('w-head',500,585);emit(x+(rng()-0.5)*500,y+(rng()-0.5)*200,'star');}
  for(let i=FX.length-1;i>=0;i--){const f=FX[i];f.age+=dt;if(f.age>f.life){FX.splice(i,1);continue;}f.x+=f.vx*dt;f.y+=f.vy*dt;if(f.kind==='star')f.vy+=400*dt;}}
-function fxDraw(ctx){for(const f of FX){const a=1-f.age/f.life;ctx.globalAlpha=a;if(f.kind==='bubble'){ctx.fillStyle=C.flask;ctx.beginPath();ctx.arc(f.x,f.y,8+f.age*10,0,TAU);ctx.fill();}else{ctx.fillStyle='#ffd866';ctx.beginPath();for(let i=0;i<5;i++){const A=i*TAU/5-Math.PI/2,r=14;ctx.lineTo(f.x+Math.cos(A)*r,f.y+Math.sin(A)*r);ctx.lineTo(f.x+Math.cos(A+TAU/10)*r*0.45,f.y+Math.sin(A+TAU/10)*r*0.45);}ctx.closePath();ctx.fill();}}ctx.globalAlpha=1;}
+function fxDraw(ctx){const G=anim.gag;
+ if(G&&G.id==='flyswat'&&G.fx.fly){const [nx,ny]=worldPoint('w-nose',700,850);const r=60;const x=nx+G.fx.fly[0]*r*1.4,y=ny+G.fx.fly[1]*r;ctx.fillStyle='#222';ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.6)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(x-4,y-4,5,2.5,-0.5+Math.sin(anim.t*60),0,TAU);ctx.stroke();ctx.beginPath();ctx.ellipse(x+4,y-4,5,2.5,0.5-Math.sin(anim.t*60),0,TAU);ctx.stroke();}
+ if(G&&G.id==='flaskburp'&&G.fx.sw>0&&!G.fx.p){const [fx,fy]=worldPoint('w-flask-mouth');const R=10+G.fx.sw*95;ctx.fillStyle='rgba(124,255,74,0.45)';ctx.beginPath();ctx.arc(fx,fy-R*0.9,R,0,TAU);ctx.fill();ctx.strokeStyle='rgba(200,255,170,0.8)';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='rgba(255,255,255,0.5)';ctx.beginPath();ctx.arc(fx-R*0.35,fy-R*1.25,R*0.18,0,TAU);ctx.fill();}
+for(const f of FX){const a=1-f.age/f.life;ctx.globalAlpha=a;if(f.kind==='bubble'){ctx.fillStyle=C.flask;ctx.beginPath();ctx.arc(f.x,f.y,8+f.age*10,0,TAU);ctx.fill();}else{ctx.fillStyle='#ffd866';ctx.beginPath();for(let i=0;i<5;i++){const A=i*TAU/5-Math.PI/2,r=14;ctx.lineTo(f.x+Math.cos(A)*r,f.y+Math.sin(A)*r);ctx.lineTo(f.x+Math.cos(A+TAU/10)*r*0.45,f.y+Math.sin(A+TAU/10)*r*0.45);}ctx.closePath();ctx.fill();}}ctx.globalAlpha=1;}
 
 const CUE_DRAFTS={}; // filled by loadCues() from assets/cues/*.json
 // ===== Cue editor + real-audio speech (Phase 4 preview) =====

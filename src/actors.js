@@ -1,4 +1,4 @@
-const ACTORS_VERSION='2026-10-13i';
+const ACTORS_VERSION='2026-10-13j';
 // actors.js — ghosts and the jar.
 // Placeholder art is drawn in code; painted art drops in via assets/ghosts/ghost.json (see docs/GHOST_DESIGN_BRIEF.md).
 // Globals used from engine.js: TAU, lerp, clamp, easeIO, rrPath.  From hunt.js (at call time): HUNT, hunt, shake, haptic, canvas, DPR.
@@ -88,14 +88,23 @@ function drawGhostFigure(ctx,o){
   }
   drawGhostEyes(ctx,size,o.look,o.lid,o.blink,(GHOSTART.cfg&&GHOSTART.cfg.lidColor)||bodyCol,geo);
   if(geo&&geo.veil){const img=GHOSTART.body;ctx.save();ctx.beginPath();ctx.rect(geo.cx-geo.dx*2.2,geo.y-geo.r*1.6,geo.dx*4.4,geo.r*3.2);ctx.clip();ctx.globalAlpha=geo.veil;ctx.drawImage(img,-geo.bw/2,geo.top,geo.bw,geo.bh);ctx.restore();}   // the gauze lies over the eyes
-  if(o.prop!==false&&s)drawGhostProp(ctx,pw,T,s);
+  if(o.tongue>0){const g=geo||{y:size*0.05,bh:size*1.3};const ty=(geo?geo.y+geo.bh*0.11:size*0.2),tw=size*0.09*o.tongue,th=size*0.16*o.tongue;ctx.fillStyle='#e8607a';ctx.beginPath();ctx.ellipse(size*0.02,ty+th*0.5,tw,th,0,0,TAU);ctx.fill();ctx.strokeStyle='rgba(120,30,50,0.6)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(size*0.02,ty);ctx.lineTo(size*0.02,ty+th*0.9);ctx.stroke();}
+  if(o.prop!==false&&s){const pm=o.propMode;if(!pm)drawGhostProp(ctx,pw,T,s);else{const u=pm.u;ctx.save();
+    if(u<0.25){const d=u/0.25;ctx.translate(size*0.15*d,size*0.75*d*d);ctx.rotate(2.5*d);drawGhostProp(ctx,pw,T,s);}             // drops
+    else if(u<0.6){ctx.translate(size*0.15,size*0.75);ctx.rotate(2.5);drawGhostProp(ctx,pw,T,s);}                                // lies on the ground while it dives
+    else{const d=Math.min(1,(u-0.6)/0.2);ctx.translate(size*0.15*(1-d),size*0.75*(1-d));ctx.rotate(2.5+(Math.PI+0.6-2.5)*d);drawGhostProp(ctx,pw,T,s);}   // back on, upside down
+    ctx.restore();}}
 }
 
 // ---------- the main ghost at the current station ----------
-const ghost={st:'idle',x:0,y:0,sx:1,sy:1,alpha:1,t:0,idx:-1,appear:1,notice:0,panic:0,size:0,flee:0,roam:{x:0,y:0,tx:0,ty:0,next:6,spot:'home'}};
+const ghost={st:'idle',x:0,y:0,sx:1,sy:1,alpha:1,t:0,idx:-1,appear:1,notice:0,panic:0,size:0,flee:0,gag:null,nextGag:14,tongue:0,lastTap:0,roam:{x:0,y:0,tx:0,ty:0,next:6,spot:'home'}};
 // restless roaming between stations: a few spots relative to home (fractions of W/H); 'away' drifts off the top and comes back
 const ROAM_SPOTS=[['home',0,0,5],['home',0,0,5],['jar',0.10,0.21,4],['hat',-0.40,-0.20,4],['high',-0.12,-0.22,3],['sky',0.02,-0.24,3],['near',-0.22,0.06,4]];
-function ghostPoke(){if(ghost.st!=='idle'||ghost.flee>0||ghost.appear<1)return false;ghost.flee=0.001;ghost.roam.spot='home';ghost.roam.tx=0;ghost.roam.ty=0;if(typeof haptic==='function')haptic(25);return true;}
+// ---- ghost gags: mimic (copies her last gag, badly, a beat later), fumble (drops its prop, dives, puts it back upside down), hide (ducks behind her hat, pops out the other side)
+function onGag(id){if(['hop','shrug','hatwiggle','doubletake','stretch','hover'].includes(id)&&ghost.st==='idle'&&!ghost.gag&&Math.random()<0.6)ghost.gag={id:'mimic',of:id,t0:ghost.t+1.1,dur:1.6};}
+function ghostGagTick(T){const g=ghost.gag;if(!g){if(ghost.st==='idle'&&!hunt.busy&&T>ghost.nextGag&&ghost.appear>=1&&ghost.flee===0){ghost.gag={id:Math.random()<0.5?'fumble':'hide',t0:T,dur:Math.random()<0.5?2.6:3.0};ghost.nextGag=T+9+Math.random()*8;}return null;}
+  if(T<g.t0)return null;const u=(T-g.t0)/g.dur;if(u>=1){ghost.gag=null;ghost.nextGag=T+9+Math.random()*8;return null;}return {g,u};}
+function ghostPoke(){if(ghost.st!=='idle'||ghost.flee>0||ghost.appear<1)return false;const nowT=ghost.t;if(nowT-ghost.lastTap<0.45){ghost.lastTap=0;ghost.tongue=1.2;if(typeof haptic==='function')haptic([20,30,20]);return true;}ghost.lastTap=nowT;ghost.flee=0.001;ghost.roam.spot='home';ghost.roam.tx=0;ghost.roam.ty=0;if(typeof haptic==='function')haptic(25);return true;}
 
 const GSIZE=0.20;   // ghost size as a fraction of screen height (was 0.13; props scale with it)
 function ghostHome(W,H){return [W*0.74,H*0.76-H*0.20];}
@@ -116,6 +125,16 @@ function drawGhost(ctx,W,H,dt){
   const size=H*GSIZE,[hx,hy]=ghostHome(W,H),T=ghost.t,id=s.ghost,tr=GTRAITS[id]||{lid:0.3};
   const o=ghostIdle(id,T);o.rot=(o.rot||0)+0.05*Math.sin(T*1.6+1);o.dy=(o.dy||0)+0.025*Math.sin(T*2.3);o.sx=(o.sx||1)*(1+0.02*Math.sin(T*2.9));o.sy=(o.sy||1)*(1-0.02*Math.sin(T*2.9));let look=[o.gx,o.gy],lid=Math.min(0.85,tr.lid+o.lidAdd),jx=0,jy=0;
   if(ghost.notice>0){look=[-0.7,0.5];lid=Math.max(0,lid-0.3);jy=-Math.sin(Math.min(1,(1.4-ghost.notice)/0.25)*Math.PI)*0.06;}   // a wrong scan: it peeks at the witch, startled
+  const GG=ghostGagTick(T);let propMode=null,hideK=0;
+  if(GG){const {g,u}=GG,e=Math.sin(Math.PI*u);
+    if(g.id==='mimic'){const of=g.of;if(of==='hop'){const h=u<0.5?Math.sin(u/0.5*Math.PI):0;o.dy+=-0.5*h;o.sy*=1-0.15*h;o.sx*=1+0.12*h;if(u>0.5)o.rot+=0.25*Math.sin((u-0.5)*TAU*2);}
+      else if(of==='shrug'){o.rot+=0.35*e;o.dy+=-0.08*e;lid=Math.max(0,lid-0.3*e);}
+      else if(of==='hatwiggle'){o.rot+=0.2*Math.sin(u*TAU*3)*e;o.dy+=-0.1*e;}
+      else if(of==='doubletake'){look=[u<0.5?-1:1,0.2];o.rot+=(u<0.5?-0.3:0.3)*e;}
+      else if(of==='stretch'){o.sy*=1+0.3*e;o.sx*=1-0.1*e;o.dy+=-0.2*e;lid=Math.min(0.9,lid+0.6*e);}
+      else if(of==='hover'){o.dy+=-0.35*Math.min(1,u*2)*(u<0.7?1:Math.max(0,1-(u-0.7)/0.3)*1);o.rot+=0.4*Math.sin(T*9)*(u>0.4&&u<0.7?1:0);if(u>0.75)o.dy+=0.1*Math.sin((u-0.75)/0.25*Math.PI);}}
+    else if(g.id==='fumble'){propMode={u};if(u>0.25&&u<0.6){const d=(u-0.25)/0.35;o.dy+=0.22*Math.sin(d*Math.PI);o.rot+=0.5*Math.sin(d*Math.PI);look=[0.3,1];lid=0;}else if(u>=0.6){look=[0,0.1];lid=Math.min(0.85,lid+0.2);}}
+    else if(g.id==='hide'){hideK=u<0.3?u/0.3:(u<0.7?1:Math.max(0,1-(u-0.7)/0.3));R.x=lerp(R.x,-0.42,hideK*0.5);R.y=lerp(R.y,-0.22,hideK*0.5);if(u>0.7)R.x=lerp(R.x,-0.2,(u-0.7)/0.3);look=[u<0.7?1:-1,0.6];}}
   let fx=0,fsx=1,fsy=1;if(ghost.flee>0){const f=Math.min(1,ghost.flee/0.5);fx=W*0.7*f*f;fsx=1+0.35*f;fsy=1-0.25*f;look=[1,0];lid=0;}
   ghost.x=Math.min(hx+o.dx*size+jx*size+R.x*W,W-size*0.62)+fx;ghost.y=Math.max(size*0.95+H*0.07,hy+(o.dy+jy)*size+R.y*H);ghost.sx=o.sx*fsx;ghost.sy=o.sy*fsy;ghost.size=size;
   if(R.spot==='hat'||R.spot==='high'){look=[0.4,0.9];}   // peeking down at the witch
@@ -125,7 +144,8 @@ function drawGhost(ctx,W,H,dt){
   // arrival puff
   if(ghost.appear<1){ctx.fillStyle='rgba(200,215,200,'+(0.25*(1-ghost.appear))+')';for(let i=0;i<5;i++){ctx.beginPath();ctx.arc(ghost.x+Math.cos(i*1.3)*size*0.5*ghost.appear,ghost.y+size*0.3+Math.sin(i*2.1)*size*0.12,size*0.22*(0.6+ghost.appear),0,TAU);ctx.fill();}}
   ctx.save();ctx.globalAlpha=ghost.alpha;ctx.translate(ghost.x,ghost.y);ctx.scale(ghost.sx*k,ghost.sy*k);ctx.rotate(o.rot);
-  drawGhostFigure(ctx,{size,T,station:s,look,lid,blink:blinkAmt(hashStr(id),T)});ctx.restore();
+  if(hideK>0)ctx.globalAlpha*=1-0.85*hideK;ghost.tongue=Math.max(0,ghost.tongue-dt);
+  drawGhostFigure(ctx,{size,T,station:s,look,lid,blink:blinkAmt(hashStr(id),T),propMode,tongue:ghost.tongue>0?Math.min(1,ghost.tongue*4,(1.2-ghost.tongue)*4):0});ctx.restore();
 }
 
 // ---------- jar ----------
@@ -141,6 +161,13 @@ function jarRelease(){if(jar.released)return;jar.released=true;if(typeof startFi
   for(let i=0;i<Math.min(8,HUNT.stations.length);i++){const st=HUNT.stations[i];jar.party.push({i,st,x:g.x+(Math.random()-0.5)*g.wn,y:g.y-g.h,vx:(Math.random()-0.5)*W*1.1,vy:-H*(0.5+Math.random()*0.5),ph:Math.random()*TAU,r:0.18+Math.random()*0.2,t:0});}}
 function drawMini(ctx,x,y,size,i,T,hop){const st=HUNT.stations[i];ctx.save();ctx.translate(x,y+hop);ctx.rotate(Math.sin(T*1.3+i)*0.08);ctx.globalAlpha=0.95;drawGhostFigure(ctx,{halo:false,size,T:T+i,station:st,look:[Math.sin(T*0.7+i)*0.6,0.2],lid:(GTRAITS[st.ghost]||{lid:0.3}).lid*0.6,blink:blinkAmt(i*13+5,T),prop:size>jarMiniProp,eyeBoost:1.7});ctx.restore();}
 const jarMiniProp=0; // props visible on every mini
+function gagFx(kind){const W=canvas.width/DPR,H=canvas.height/DPR;
+  if(kind==='sneeze'){const [x,y]=worldPoint('w-nose',700,900);for(let i=0;i<10;i++)emit(x,y,'bubble');haptic(30);}
+  else if(kind==='burp'){const [x,y]=worldPoint('w-flask-mouth');jarFx(x,y-40,40,'rgba(124,255,74,0.9)',220,0.8);haptic([10,20,30]);}
+  else if(kind==='thud'){shake();haptic(60);const [x,y]=worldPoint('w-body',500,1560);jarFx(x,y,24,'rgba(200,190,170,0.6)',120,0.7);}
+  else if(kind==='bonk'){haptic(25);const [x,y]=worldPoint('w-nose',700,850);for(let i=0;i<4;i++)emit(x,y,'star');}
+  else if(kind==='boo'){haptic([15,30,40]);jar.rattle=Math.max(jar.rattle,0.5);}
+  else if(kind==='creak'){haptic([8,40,8,40,8]);}}
 function jarPoke(){if(jar.released)return false;jar.rattle=Math.max(jar.rattle,0.9);jar.sq=Math.max(jar.sq,0.5);jar.peek=1.2;if(typeof haptic==='function')haptic(jar.count?40:15);return true;}
 function drawJar(ctx,W,H,dt){
   const g=jarGeom(W,H);jar.t+=dt;const T=jar.t;
@@ -178,6 +205,7 @@ function drawJar(ctx,W,H,dt){
   else{ctx.save();jarPath(ctx,g);ctx.clip();}
   {const ctx=octx;
   const gi=ctx.createLinearGradient(0,-g.h,0,0);gi.addColorStop(0,'rgba(124,255,74,0.0)');gi.addColorStop(1,'rgba(124,255,74,'+Math.min(0.5,0.08+0.03*jar.count)+')');ctx.fillStyle=gi;ctx.fillRect(-g.wb,-g.h,g.wb*2,g.h);
+  const GB=anim.gag&&anim.gag.id==='jarpeek'&&anim.gag.fx.boo;if(GB&&jar.count>0){jar.peek=Math.max(jar.peek||0,0.6);}
   jar.peek=Math.max(0,(jar.peek||0)-dt);const bump=(jar.count>=4?0.25*(jar.count-3):0)+(jar.peek>0?1.6*Math.sin(Math.min(1,(1.2-jar.peek)/1.2)*Math.PI):0);
   for(let i=0;i<jar.count&&i<8;i++){const[sx,sy]=jarSlot(g,i);const hopPh=(T*0.7+i*1.3)%4,hop=bump&&hopPh<0.3?-Math.sin(hopPh/0.3*Math.PI)*g.wb*0.12*bump:0;const wob=Math.sin(T*(2+i*0.3))*g.wb*0.012*(1+bump*2);drawMini(ctx,sx+wob,sy,g.wb*0.3,i,T,hop);}
   }

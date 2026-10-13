@@ -5,7 +5,7 @@
 // ===================================================================
 
 // ---------- content package (hunt.json inline for the artifact) ----------
-const HB_VERSION='2026-10-13i';
+const HB_VERSION='2026-10-13j';
 const HUNT={id:'haunted-block-2026',title:'The Block Is Haunted',
  stations:[
   {n:1,code:'hb1',scene:'assets/scenes/01-hotdog.jpg',name:'Entry Hot Dog Stand',ghost:'mustard',accent:'#e4c33a',prop:'hotdog',color:'#2b2230',
@@ -191,7 +191,7 @@ async function chatterTick(){if(hunt.state!=='STATION'||hunt.busy||anim.speech||
  const buf=await loadClip(name);if(!buf&&!$('dev').classList.contains('show')){chatterAt=now+30;return;}lastChatter=i;hunt.busy=true;await say(name,HUNT.chatter[i],{mood:Math.random()<0.5?'suspicious':'happy'});hunt.busy=false;anim.lookAt('down');chatterReset();}
 // ---------- tap reactions ----------
 function screenOf(id,px,py){const S=LAYER_SPACE,[wx,wy]=worldPoint(id,S.ox+px/S.ppu,S.oy+py/S.ppu);return[(view[0]*wx+view[2]*wy+view[4])/DPR,(view[1]*wx+view[3]*wy+view[5])/DPR,view[0]/DPR/S.ppu];}
-const TAPS=[['w-nose',690,875,95,'sneeze'],['w-eye-L',600,690,72,'winkL'],['w-eye-R',730,705,66,'winkR'],['w-hat',560,280,240,'hatbump'],['w-flask',700,1395,115,'bubble'],['w-torso',620,1120,175,'laughing']];
+const TAPS=[['w-nose',690,875,95,'sneeze'],['w-leg-L',455,1500,80,'toe'],['w-leg-R',545,1500,80,'toe'],['w-eye-L',600,690,72,'winkL'],['w-eye-R',730,705,66,'winkR'],['w-hat',560,280,240,'hatbump'],['w-flask',700,1395,115,'bubble'],['w-torso',620,1120,175,'laughing']];
 function tapAt(cx,cy){if(hunt.state!=='STATION'&&hunt.state!=='DONE')return;
  // ghost first (it floats over everything), then the jar, then the witch zones
  if(ghost.st==='idle'&&ghost.size&&Math.hypot(cx-ghost.x,cy-(ghost.y-ghost.size*0.25))<ghost.size*0.6){if(ghostPoke()){anim.lookAt('right');setTimeout(()=>anim.lookAt('down'),1200);}return;}
