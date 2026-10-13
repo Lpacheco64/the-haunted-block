@@ -1,4 +1,4 @@
-const ENGINE_VERSION='2026-10-13d';
+const ENGINE_VERSION='2026-10-13h';
 // Agatha character engine — rig, animator, painted-layer loader, compositors. Shared by lab/ and the hunt.
 'use strict';
 /* ===================================================================
@@ -26,7 +26,7 @@ const PARAMS={
  'nose.rot':[0,-15,15],
  'mouth.open':[0,0,1],'jaw.scale':[1,0,1],'jaw.drop':[0,0,1],
  'arm.L.shoulder':[0,-60,170],'arm.L.elbow':[0,-140,60],'arm.R.shoulder':[8,-60,170],'arm.R.elbow':[-15,-140,60],'flask.glow':[0,0,1],
- 'hat.squash':[0,-0.3,0.3],'hat.lift':[0,0,80],'leg.L.rot':[0,-40,40],'leg.R.rot':[0,-40,40],'fx.stars':[0,0,1],
+ 'hat.squash':[0,-0.03,0.03],'hat.lift':[0,0,6],'leg.L.rot':[0,-40,40],'leg.R.rot':[0,-40,40],'fx.stars':[0,0,1],
  'hatTip.rot':[0,-40,40],'charm.rot':[0,-60,60],'hair.L.rot':[0,-20,20],'hair.R.rot':[0,-20,20],'nose.jiggle':[0,-10,10],'shawl.rot':[0,-10,10],'skirt.rot':[0,-10,10],'leg.lag':[0,-20,20],
 };
 const ENUMS={'mouth.shape':'neutral','hand.L.pose':'rest','hand.R.pose':'grip'};
@@ -220,7 +220,7 @@ headChild({id:'w-brow-L',z:55,depth:0.6,kind:'sprite',pivot:[447,486],pose:P=>({
 headChild({id:'w-brow-R',z:55,depth:0.6,kind:'sprite',pivot:[557,480],pose:P=>({y:-P['brow.R.raise']*22,rot:-P['brow.R.angle']}),draw(ctx){drawBrow(ctx,true);}});
 headChild({id:'w-nose',z:60,depth:1,kind:'sprite',pivot:[505,545],pose:P=>({rot:P['nose.rot']+P['nose.jiggle']}),draw(ctx){drawNose(ctx);}});
 headChild({id:'w-hair-front',z:70,depth:0.25,kind:'sprite',pivot:[500,430],draw(ctx){if(!ART.on)drawHairFront(ctx);}});
-headChild({id:'w-hat',z:80,depth:0.1,kind:'sprite',pivot:[500,395],pose:P=>({y:-P['hat.lift'],sx:1+P['hat.squash'],sy:1-P['hat.squash']*1.3}),draw(ctx){drawHat(ctx);}});
+headChild({id:'w-hat',z:80,depth:-0.25,kind:'sprite',pivot:[500,395],pose:P=>({y:-P['hat.lift'],sx:1+P['hat.squash'],sy:1-P['hat.squash']*1.3}),draw(ctx){drawHat(ctx);}});
 node({id:'w-hat-tip',parent:'w-hat',z:81,kind:'sprite',pivot:[500,125],pose:P=>({rot:P['hatTip.rot']}),draw(ctx){drawHatTip(ctx);}});
 node({id:'w-hat-charm',parent:'w-hat-tip',z:82,kind:'sprite',pivot:[584,122],pose:P=>({rot:P['charm.rot']}),draw(ctx){drawCharm(ctx);}});
 node({id:'w-fx',parent:'w-root',z:100,kind:'procedural',pivot:[500,1560],draw(ctx){}});
