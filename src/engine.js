@@ -454,8 +454,8 @@ class Animator{
   S['eye.L.openU']*=1-bl;S['eye.R.openU']*=1-bl;S['eye.L.openL']*=1-0.3*bl;S['eye.R.openL']*=1-0.3*bl;
   // secondary springs (follow-through lag)
   const sp2=this.sp,hs=S['head.rot']+S['head.x']*0.15;
-  S['hatTip.rot']=clamp((sp2.hat.update(dt,hs)-hs)*0.9,-22,22);
-  S['charm.rot']=clamp((sp2.charm.update(dt,S['hatTip.rot']+hs)-(S['hatTip.rot']+hs))*1.5,-60,60);
+  S['hatTip.rot']=0;sp2.hat.update(dt,hs);   // the hook no longer swings on its own (it split from the crown); the whole hat still lifts/squashes and the charm still swings
+  S['charm.rot']=clamp((sp2.charm.update(dt,hs)-hs)*2.2,-60,60);
   const hh=S['head.rot']+S['head.x']*0.2;S['hair.L.rot']=clamp((sp2.hairL.update(dt,hh)-hh)*0.8,-20,20);S['hair.R.rot']=S['hair.L.rot'];
   const nh=S['head.y']*0.2+S['head.rot'];S['nose.jiggle']=clamp((sp2.nose.update(dt,nh)-nh)*0.4,-10,10);
   const bs=S['body.rot']+S['body.x']*0.1;S['shawl.rot']=clamp((sp2.shawl.update(dt,bs)-bs)*0.5,-10,10);S['skirt.rot']=clamp((sp2.skirt.update(dt,S['body.rot'])-S['body.rot'])*0.6,-10,10);

@@ -76,7 +76,7 @@ function drawGhostFigure(ctx,o){
   const size=o.size,T=o.T,s=o.station,w=size*0.78,h=size*1.25,bodyCol='rgba(230,227,218,0.97)';
   let geo=null,pw=w;
   if(GHOSTART.body){const img=GHOSTART.body,c=GHOSTART.cfg||{},bh=size*(c.bodyHeight||1.35),bw=bh*img.width/img.height,top=size*0.55-bh,E=c.eyes||{y:0.31,dx:0.045,r:0.034,cx:-0.02,veil:0.3},eb=o.eyeBoost||1;pw=bw*0.9;
-    if(o.halo!==false){const hg=ctx.createRadialGradient(0,top+bh*0.45,bh*0.05,0,top+bh*0.45,bh*0.62);hg.addColorStop(0,'rgba(215,230,255,0.42)');hg.addColorStop(0.6,'rgba(200,220,255,0.18)');hg.addColorStop(1,'rgba(200,220,255,0)');ctx.fillStyle=hg;ctx.fillRect(-bw,top-bh*0.2,bw*2,bh*1.4);}
+    if(o.halo!==false&&s&&s.accent){ctx.save();ctx.shadowColor=s.accent;ctx.shadowBlur=Math.max(10,bh*0.09);ctx.drawImage(img,-bw/2,top,bw,bh);ctx.restore();}   // the station's accent glow, as in the finale
     ctx.drawImage(img,-bw/2,top,bw,bh);geo={y:top+bh*E.y,dx:bh*E.dx*(0.6+0.4*eb),r:bh*E.r*eb,cx:bh*(E.cx||0),top,bh,bw,veil:E.veil};}
   else{
     const g=ctx.createLinearGradient(0,-h*0.6,0,h*0.5);g.addColorStop(0,'rgba(236,233,224,0.96)');g.addColorStop(0.7,'rgba(222,220,212,0.9)');g.addColorStop(1,'rgba(222,220,212,0.15)');
