@@ -1,4 +1,4 @@
-const ACTORS_VERSION='2026-10-14a';
+const ACTORS_VERSION='2026-10-14c';
 // actors.js — ghosts and the jar.
 // Placeholder art is drawn in code; painted art drops in via assets/ghosts/ghost.json (see docs/GHOST_DESIGN_BRIEF.md).
 // Globals used from engine.js: TAU, lerp, clamp, easeIO, rrPath.  From hunt.js (at call time): HUNT, hunt, shake, haptic, canvas, DPR.
@@ -104,7 +104,7 @@ const ROAM_SPOTS=[['home',0,0,5],['home',0,0,5],['jar',0.10,0.21,4],['hat',-0.40
 function onGag(id){if(['hop','shrug','hatwiggle','doubletake','stretch','hover'].includes(id)&&ghost.st==='idle'&&!ghost.gag&&Math.random()<0.6)ghost.gag={id:'mimic',of:id,t0:ghost.t+1.1,dur:1.6};}
 function ghostGagTick(T){const g=ghost.gag;if(!g){if(ghost.st==='idle'&&!hunt.busy&&T>ghost.nextGag&&ghost.appear>=1&&ghost.flee===0){ghost.gag={id:Math.random()<0.5?'fumble':'hide',t0:T,dur:Math.random()<0.5?2.6:3.0};ghost.nextGag=T+9+Math.random()*8;}return null;}
   if(T<g.t0)return null;const u=(T-g.t0)/g.dur;if(u>=1){ghost.gag=null;ghost.nextGag=T+9+Math.random()*8;return null;}return {g,u};}
-function ghostPoke(){if(ghost.st!=='idle'||ghost.flee>0||ghost.appear<1)return false;const nowT=ghost.t;if(nowT-ghost.lastTap<0.45){ghost.lastTap=0;ghost.tongue=1.2;if(typeof haptic==='function')haptic([20,30,20]);return true;}ghost.lastTap=nowT;ghost.flee=0.001;ghost.roam.spot='home';ghost.roam.tx=0;ghost.roam.ty=0;if(typeof haptic==='function')haptic(25);return true;}
+function ghostPoke(){if(ghost.st!=='idle'||ghost.flee>0||ghost.appear<1)return false;const nowT=ghost.t;if(nowT-ghost.lastTap<0.45){ghost.lastTap=0;ghost.tongue=1.2;if(typeof haptic==='function')haptic([20,30,20]);return true;}ghost.lastTap=nowT;if(typeof playSfx==='function')playSfx('ghost'+(1+Math.floor(Math.random()*5)),0.5);ghost.flee=0.001;ghost.roam.spot='home';ghost.roam.tx=0;ghost.roam.ty=0;if(typeof haptic==='function')haptic(25);return true;}
 
 const GSIZE=0.20;   // ghost size as a fraction of screen height (was 0.13; props scale with it)
 function ghostHome(W,H){return [W*0.74,H*0.76-H*0.20];}
@@ -113,7 +113,8 @@ function blinkAmt(seed,T){const ph=(T*0.31+seed/97)%1;return ph<0.035?Math.sin(p
 const easeOutBack=t=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2);};
 function drawGhost(ctx,W,H,dt){
   const s=HUNT.stations[hunt.step];if(!s)return;
-  if(ghost.idx!==hunt.step){ghost.idx=hunt.step;ghost.appear=0;ghost.t=0;ghost.notice=0;ghost.panic=0;}
+  if(ghost.idx!==hunt.step){ghost.idx=hunt.step;ghost.appear=0;ghost.t=0;ghost.notice=0;ghost.panic=0;ghost.said=false;}
+  if(!ghost.said&&ghost.appear>0.5&&ghost.st==='idle'){ghost.said=true;if(typeof playSfx==='function'){const st=HUNT.stations[hunt.step];playSfx((st&&(st.n===4||st.n===8))?'sting':'ghost'+(1+Math.floor(Math.random()*5)),0.55);}}
   if(ghost.st==='gone'||ghost.st==='captured')return;                 // captured ghosts are drawn by the jar (in front of it)
   ghost.t+=dt;ghost.appear=Math.min(1,ghost.appear+dt/0.7);ghost.notice=Math.max(0,ghost.notice-dt);
   // tap → it bolts off the right edge, hides, then drifts back in with its puff
@@ -177,7 +178,7 @@ function drawJar(ctx,W,H,dt){
   // flight state machine
   const f=jar.fly,mx=g.x,my=g.y-g.h*1.02;let flyGhost=null;
   if(f){f.t+=dt;
-    if(f.phase==='panic'){if(!ghost.panic)haptic([15,40,15]);ghost.panic=1;if(f.t>=0.35){f.phase='fly';f.t=0;}flyGhost={x:f.x0+(Math.random()-0.5)*6,y:f.y0,sx:1,sy:1,k:1,look:[0,0.3],lid:0,alpha:1};}
+    if(f.phase==='panic'){if(!ghost.panic){haptic([15,40,15]);if(typeof playSfx==='function')playSfx('ghost'+(1+Math.floor(Math.random()*5)),0.7);}ghost.panic=1;if(f.t>=0.35){f.phase='fly';f.t=0;}flyGhost={x:f.x0+(Math.random()-0.5)*6,y:f.y0,sx:1,sy:1,k:1,look:[0,0.3],lid:0,alpha:1};}
     else if(f.phase==='fly'){const D=2.6,u=Math.min(1,f.t/D);   // 2.6 s: a wide loop around Agatha's head, a tightening spiral over the jar, then the plunge
       if(f.t===0||!f.sfx){f.sfx=1;if(typeof playSfx==='function')playSfx('swoosh');}
       const [hx,hy]=worldPoint('w-head',500,585);const hsx=(view[0]*hx+view[2]*hy+view[4])/DPR,hsy=(view[1]*hx+view[3]*hy+view[5])/DPR;   // her head on screen

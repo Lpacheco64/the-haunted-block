@@ -5,7 +5,7 @@
 // ===================================================================
 
 // ---------- content package (hunt.json inline for the artifact) ----------
-const HB_VERSION='2026-10-14b';
+const HB_VERSION='2026-10-14c';
 const HUNT={id:'haunted-block-2026',title:'The Block Is Haunted',
  stations:[
   {n:1,code:'hb1',scene:'assets/scenes/01-hotdog.jpg',name:'Entry Hot Dog Stand',ghost:'mustard',accent:'#e4c33a',prop:'hotdog',color:'#2b2230',
@@ -142,18 +142,18 @@ function render(P,dt){audioMix(dt);const W=canvas.width/DPR,H=canvas.height/DPR;
  rigUpdate(P);for(const n of sortedDrawList(P)){if(!ART.on&&!artError&&hunt.state!=='BOOT'&&hunt.state!=='START')continue;if(n.kind==='raster'&&!RASTER[n.id])continue;const m=mmul(view,n.world);ctx.setTransform(m[0],m[1],m[2],m[3],m[4],m[5]);if(n.id==='w-fx')fxDraw(ctx);else if(n.id==='w-hat-tip'&&ART.on){}else if(rasterEnabled&&RASTER[n.id]&&n.id!=='w-jaw')drawRaster(ctx,n.id);else n.draw(ctx,P,n);}
  ctx.setTransform(DPR,0,0,DPR,0,0);drawJar(ctx,W,H,dt);}
 const anim=new Animator();let P=defaults(),last=performance.now(),hidden=false;
-function loop(t){let dt=Math.min((t-last)/1000,0.05);last=t;if(!hidden){now+=dt;P=anim.update(dt);fxUpdate(dt,P);render(P,dt);tickWaiters();chatterTick();}devRefresh();requestAnimationFrame(loop);}
+function loop(t){let dt=Math.min((t-last)/1000,0.05);last=t;if(!hidden){now+=dt;P=anim.update(dt);fxUpdate(dt,P);render(P,dt);tickWaiters();chatterTick();windTick();}devRefresh();requestAnimationFrame(loop);}
 document.addEventListener('visibilitychange',()=>{hidden=document.hidden;if(!hidden)last=performance.now();if(ACTX){if(hidden)ACTX.suspend();else ACTX.resume();}});
 
 // ---------- director: the sequences ----------
 function setState(s){hunt.state=s;hlog('→ '+s);}
-async function runOpening(){setState('OPENING');sceneSet('assets/scenes/00-entrance-wide.jpg');scenePreload(0);hunt.busy=true;$('hud').classList.add('show');$('scanner').classList.add('show');stationLabel();anim.big=true;await anim.play('hop');await say('opening',HUNT.opening,{mood:'suspicious'});anim.big=false;await waitSec(0.4);hunt.busy=false;await runClue();}
+async function runOpening(){setState('OPENING');playSfx('howl',0.7);sceneSet('assets/scenes/00-entrance-wide.jpg');scenePreload(0);hunt.busy=true;$('hud').classList.add('show');$('scanner').classList.add('show');stationLabel();anim.big=true;await anim.play('hop');await say('opening',HUNT.opening,{mood:'suspicious'});anim.big=false;await waitSec(0.4);hunt.busy=false;await runClue();}
 async function runClue(){const s=HUNT.stations[hunt.step];setState('STATION');if(hunt.step>0)haptic(20);sceneCol=s.color;sceneSet(s.scene);scenePreload(hunt.step+1);ghost.st='idle';ghost.t=0;stationLabel();hunt.busy=true;await say('clue_0'+s.n,s.clue,{mood:'suspicious'});anim.lookAt('down');hunt.busy=false;save({step:hunt.step,count:jar.count});}
 async function onCorrect(){if(hunt.busy||hunt.state!=='STATION')return;const s=HUNT.stations[hunt.step];setState('CAPTURING');hunt.busy=true;$('scanwin').classList.add('pulse');haptic(30);
  anim.play('surprised');await waitSec(0.3);await say('correct_0'+s.n,s.capture,{mood:'happy'});
  if(!jar.fly&&ghost.st!=='gone')jarCapture();while(ghost.st!=='gone')await waitSec(0.05);await waitSec(0.4);$('scanwin').classList.remove('pulse');
  if(hunt.step>=7){await runFinale();return;}hunt.step++;hunt.busy=false;await runClue();}
-async function onWrong(){if(hunt.busy||hunt.state!=='STATION')return;hunt.busy=true;haptic([60,40,60]);const i=hunt.wrongIdx;hunt.wrongIdx=(i+1)%3;ghost.st='idle';ghostNotice();await say('wrong_'+(i+1),HUNT.wrong[i],{mood:'suspicious'});hunt.busy=false;}
+async function onWrong(){if(hunt.busy||hunt.state!=='STATION')return;hunt.busy=true;playSfx('wrong',0.6);haptic([60,40,60]);const i=hunt.wrongIdx;hunt.wrongIdx=(i+1)%3;ghost.st='idle';ghostNotice();await say('wrong_'+(i+1),HUNT.wrong[i],{mood:'suspicious'});hunt.busy=false;}
 async function runFinale(){setState('FINALE');hunt.busy=true;$('scanner').classList.remove('show');anim.play('celebrating');await say('final',HUNT.final,{mood:'happy'});if(!jar.released)jarRelease();await anim.play('laughing');for(const a of ['celebrating','magic','celebrating','laughing','celebrating']){await anim.play(a);}setState('DONE');hunt.done=true;save({done:true});haptic([30,30,30,30,120]);$('final').classList.add('show');}
 
 // ---------- scanner ----------
@@ -188,6 +188,7 @@ function devRefresh(){}
 // ---------- walking chatter: a random short line every 45–70 s of quiet between scans (only if its recording exists; always in dev mode) ----------
 let chatterAt=0,lastChatter=-1,quietSince=0;
 function chatterReset(){quietSince=now;chatterAt=now+45+Math.random()*25;}
+let windAt=0;function windTick(){if(hunt.state!=='STATION'||hidden)return;if(!windAt)windAt=now+40+Math.random()*40;if(now>=windAt){windAt=now+70+Math.random()*50;if(!anim.speech)playSfx('wind',0.35);}}
 async function chatterTick(){if(hunt.state!=='STATION'||hunt.busy||anim.speech||anim.action||hidden)return;if(now<chatterAt)return;
  let i;do{i=Math.floor(Math.random()*HUNT.chatter.length);}while(i===lastChatter);const name='chatter_'+String(i+1).padStart(2,'0');
  const buf=await loadClip(name);if(!buf&&!$('dev').classList.contains('show')){chatterAt=now+30;return;}lastChatter=i;hunt.busy=true;await say(name,HUNT.chatter[i],{mood:Math.random()<0.5?'suspicious':'happy'});hunt.busy=false;anim.lookAt('down');chatterReset();}
