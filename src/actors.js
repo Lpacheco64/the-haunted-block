@@ -1,4 +1,4 @@
-const ACTORS_VERSION='2026-10-13j';
+const ACTORS_VERSION='2026-10-14a';
 // actors.js — ghosts and the jar.
 // Placeholder art is drawn in code; painted art drops in via assets/ghosts/ghost.json (see docs/GHOST_DESIGN_BRIEF.md).
 // Globals used from engine.js: TAU, lerp, clamp, easeIO, rrPath.  From hunt.js (at call time): HUNT, hunt, shake, haptic, canvas, DPR.
@@ -156,7 +156,7 @@ function jarPath(ctx,g){const{h,wb,wn}=g;ctx.beginPath();ctx.moveTo(-wn/2,-h);ct
 function jarSlot(g,i){const s=JSLOTS[i%8];return [s[0]*g.wb,s[1]*g.h];}
 function jarFx(x,y,n,col,spd,life){for(let i=0;i<n;i++){const a=Math.random()*TAU,v=spd*(0.3+Math.random());jar.fx.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-spd*0.4,age:0,life:life*(0.6+Math.random()*0.6),col,r:2+Math.random()*3});}}
 function jarCapture(){if(ghost.st==='captured'||ghost.st==='gone')return;ghost.st='captured';jar.fly={phase:'panic',t:0,x0:ghost.x,y0:ghost.y,trail:[]};}
-function jarRelease(){if(jar.released)return;jar.released=true;if(typeof startFinaleMusic==='function')startFinaleMusic();jar.glow=1;jar.blow={x:0,y:0,vx:(Math.random()-0.3)*60,vy:-260,rot:0,vr:6,t:0};shake();haptic([120,60,40,60,40,60,80]);
+function jarRelease(){if(jar.released)return;jar.released=true;if(typeof startFinaleMusic==='function')startFinaleMusic();if(typeof playSfx==='function')playSfx('pop');jar.glow=1;jar.blow={x:0,y:0,vx:(Math.random()-0.3)*60,vy:-260,rot:0,vr:6,t:0};shake();haptic([120,60,40,60,40,60,80]);
   const W=canvas.width/DPR,H=canvas.height/DPR,g=jarGeom(W,H);jarFx(g.x,g.y-g.h,70,'rgba(124,255,74,0.9)',260,1.2);
   for(let i=0;i<Math.min(8,HUNT.stations.length);i++){const st=HUNT.stations[i];jar.party.push({i,st,x:g.x+(Math.random()-0.5)*g.wn,y:g.y-g.h,vx:(Math.random()-0.5)*W*1.1,vy:-H*(0.5+Math.random()*0.5),ph:Math.random()*TAU,r:0.18+Math.random()*0.2,t:0});}}
 function drawMini(ctx,x,y,size,i,T,hop){const st=HUNT.stations[i];ctx.save();ctx.translate(x,y+hop);ctx.rotate(Math.sin(T*1.3+i)*0.08);ctx.globalAlpha=0.95;drawGhostFigure(ctx,{halo:false,size,T:T+i,station:st,look:[Math.sin(T*0.7+i)*0.6,0.2],lid:(GTRAITS[st.ghost]||{lid:0.3}).lid*0.6,blink:blinkAmt(i*13+5,T),prop:size>jarMiniProp,eyeBoost:1.7});ctx.restore();}
@@ -178,16 +178,24 @@ function drawJar(ctx,W,H,dt){
   const f=jar.fly,mx=g.x,my=g.y-g.h*1.02;let flyGhost=null;
   if(f){f.t+=dt;
     if(f.phase==='panic'){if(!ghost.panic)haptic([15,40,15]);ghost.panic=1;if(f.t>=0.35){f.phase='fly';f.t=0;}flyGhost={x:f.x0+(Math.random()-0.5)*6,y:f.y0,sx:1,sy:1,k:1,look:[0,0.3],lid:0,alpha:1};}
-    else if(f.phase==='fly'){const u=Math.min(1,f.t/1.0),e=easeIO(u),cx=lerp(f.x0,mx,0.4),cy=Math.min(f.y0,my)-H*0.08,x=(1-e)*(1-e)*f.x0+2*(1-e)*e*cx+e*e*mx,y=(1-e)*(1-e)*f.y0+2*(1-e)*e*cy+e*e*my;
-      const mini=g.wb*0.3/(ghost.size||H*GSIZE);flyGhost={x,y,sx:1-0.35*Math.sin(Math.PI*u),sy:1+0.5*Math.sin(Math.PI*u),k:lerp(1,mini,e),look:[Math.cos(u*3)*0.5,-0.4],lid:0,alpha:1};
-      f.trail.push([x,y]);if(f.trail.length>20)f.trail.shift();if(Math.random()<0.6)jarFx(x,y,1,'rgba(124,255,74,0.9)',60,0.6);
+    else if(f.phase==='fly'){const D=2.6,u=Math.min(1,f.t/D);   // 2.6 s: a wide loop around Agatha's head, a tightening spiral over the jar, then the plunge
+      if(f.t===0||!f.sfx){f.sfx=1;if(typeof playSfx==='function')playSfx('swoosh');}
+      const [hx,hy]=worldPoint('w-head',500,585);const hsx=(view[0]*hx+view[2]*hy+view[4])/DPR,hsy=(view[1]*hx+view[3]*hy+view[5])/DPR;   // her head on screen
+      let x,y,sc=1;
+      if(u<0.45){const v=u/0.45,e=easeIO(v);const ang=-Math.PI*0.5+e*Math.PI*2.1,R=H*0.19*(0.7+0.3*Math.sin(v*Math.PI));const cx0=hsx,cy0=hsy-H*0.02;x=lerp(f.x0,cx0+Math.cos(ang)*R*1.35,Math.min(1,v*3))+(v>0.33?0:0);y=lerp(f.y0,cy0+Math.sin(ang)*R,Math.min(1,v*3));if(v>=0.33){x=cx0+Math.cos(ang)*R*1.35;y=cy0+Math.sin(ang)*R;}}
+      else if(u<0.85){const v=(u-0.45)/0.4,e=v;const ang=Math.PI*1.6+v*Math.PI*3.2,R=H*0.12*(1-0.85*e);const cx0=lerp(hsx,mx,Math.min(1,v*1.6)),cy0=lerp(hsy-H*0.02,my-H*0.08,Math.min(1,v*1.6));x=cx0+Math.cos(ang)*R*1.3;y=cy0+Math.sin(ang)*R;sc=1-0.45*e;}
+      else{const v=(u-0.85)/0.15,e=v*v;x=lerp(mx,mx,1);y=lerp(my-H*0.08,my,e);sc=0.55-0.15*v;}
+      const mini=g.wb*0.3/(ghost.size||H*GSIZE),spd=Math.min(1,u*4);
+      flyGhost={x,y,sx:1-0.25*Math.sin(u*TAU*2.5)*spd,sy:1+0.35*Math.sin(u*TAU*2.5)*spd,k:lerp(sc,mini,u>0.85?(u-0.85)/0.15:0)*(u>0.85?1:sc/sc),look:[Math.cos(u*9)*0.6,0.2+0.3*Math.sin(u*7)],lid:u<0.45?0:0.1,alpha:1};
+      if(u<=0.85)flyGhost.k=sc;
+      f.trail.push([x,y]);if(f.trail.length>34)f.trail.shift();if(Math.random()<0.8)jarFx(x,y,2,'rgba(124,255,74,0.9)',70,0.7);
       if(u>=1){f.phase='drop';f.t=0;}}
     else if(f.phase==='drop'){const u=Math.min(1,f.t/0.35),[sx,sy]=jarSlot(g,jar.count),x=mx+(g.x+sx-mx)*u,y=my+(g.y+sy-my)*u*u+Math.sin(u*Math.PI)*-4,mini=g.wb*0.3/(ghost.size||H*GSIZE);
       flyGhost={x,y,sx:1,sy:1,k:mini,look:[0,0.5],lid:0.1,alpha:1};
       if(u>=1){jar.fly=null;ghost.st='gone';ghost.panic=0;jar.count++;jar.closing=true;jarFx(mx,my,26,'rgba(124,255,74,0.9)',180,0.8);}}
     jar.lidTarget=1;}
   if(f||jar.closing||jar.released)jar.park=Math.max(0,jar.park-dt*4);
-  if(jar.closing){jar.lidO-=dt*7;if(jar.lidO<=0){jar.lidO=0;jar.closing=false;jar.sq=1;jar.rattle=0.6;shake();haptic(60);jarFx(mx,my,16,'rgba(255,240,180,0.9)',140,0.5);}}
+  if(jar.closing){jar.lidO-=dt*7;if(jar.lidO<=0){jar.lidO=0;jar.closing=false;jar.sq=1;jar.rattle=0.6;shake();haptic(60);if(typeof playSfx==='function')playSfx('slam');jarFx(mx,my,16,'rgba(255,240,180,0.9)',140,0.5);}}
   else if(f)jar.lidO=Math.min(1,jar.lidO+dt*6);
   // ---- draw jar ----
   const rx=(jar.rattle>0||jar.count>=8&&!jar.released)?(Math.random()-0.5)*(jar.rattle>0?5:1.6):0,sq=jar.sq;

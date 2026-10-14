@@ -1,4 +1,4 @@
-const ENGINE_VERSION='2026-10-13j';
+const ENGINE_VERSION='2026-10-14a';
 // Agatha character engine — rig, animator, painted-layer loader, compositors. Shared by lab/ and the hunt.
 'use strict';
 /* ===================================================================
@@ -135,6 +135,23 @@ function drawMouth(ctx,P){const g=mouthGeom(P),sh=g.sh,hw=g.w/2,x=g.x;ctx.lineCa
 const NODES=[]; const NODE={};
 function node(d){NODES.push(d);NODE[d.id]=d;if(!d.pivot)d.pivot=[500,760];return d;}
 const HAND_POSES={rest:{a:[-12,-4,4,12],len:78},open:{a:[-40,-14,14,40],len:85},point:{a:[-30,-6,6,14],len:[40,90,38,34]},grip:{a:[-24,-8,8,24],len:42,curl:70},splayed:{a:[-60,-22,22,60],len:92},casting:{a:[-38,-13,13,38],len:80,curl:55}};
+// Painted-art sleeve: the AI cut left only short shawl flaps for arms, so when the arm rotates up the hand floats free.
+// This draws a ragged fabric tube from the shoulder pivot down the upper arm, then (in the forearm's frame) to the wrist, in the shawl's colours.
+function drawSleeve(ctx,P,side,k){const up=NODE['w-arm-'+side+'-upper'],hd=NODE['w-hand-'+side],hr=RASTER['w-hand-'+side];if(!up||!hd||!hr)return;
+ // target: the painted hand's palm centre, taken from the hand raster's box in the hand's own frame, mapped into the upper arm's frame
+ const inv=m=>{const d=m[0]*m[3]-m[1]*m[2];return[m[3]/d,-m[1]/d,-m[2]/d,m[0]/d,(m[2]*m[5]-m[3]*m[4])/d,(m[1]*m[4]-m[0]*m[5])/d];};
+ const [rx,ry,rw,rh]=hr.rig,palm=mpt(hd.world,rx+rw*0.5,ry+rh*0.42),loc=mpt(inv(up.world),palm[0],palm[1]);
+ const S=up.pivot,T=loc,len=Math.hypot(T[0]-S[0],T[1]-S[1]);if(len<10)return;
+ const ux=(T[0]-S[0])/len,uy=(T[1]-S[1])/len,nx=-uy,ny=ux,w0=110,w1=78;
+ ctx.save();ctx.globalAlpha=k;ctx.lineCap='round';ctx.lineJoin='round';
+ const tube=(wa,wb,col,sh)=>{ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(S[0]+nx*wa/2+ux*sh,S[1]+ny*wa/2+uy*sh);ctx.lineTo(T[0]+nx*wb/2,T[1]+ny*wb/2);ctx.lineTo(T[0]-nx*wb/2,T[1]-ny*wb/2);ctx.lineTo(S[0]-nx*wa/2+ux*sh,S[1]-ny*wa/2+uy*sh);ctx.closePath();ctx.fill();};
+ tube(w0,w1,'#241914',-20);tube(w0*0.82,w1*0.82,'#43342b',-12);tube(w0*0.42,w1*0.5,'#5a483a',0);
+ // ragged cuff
+ ctx.fillStyle='#241914';for(let i=-3;i<=3;i++){const o=i*w1/6,L=14+8*Math.abs(Math.sin(i*2.3));ctx.beginPath();ctx.moveTo(T[0]+nx*o-ux*6,T[1]+ny*o-uy*6);ctx.lineTo(T[0]+nx*(o+6)+ux*L,T[1]+ny*(o+6)+uy*L);ctx.lineTo(T[0]+nx*(o-6)+ux*L,T[1]+ny*(o-6)+uy*L);ctx.closePath();ctx.fill();}
+ // maroon lace stripe + a few knit lines
+ ctx.strokeStyle='rgba(128,44,78,0.6)';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(S[0]+nx*w0*0.18,S[1]+ny*w0*0.18);ctx.lineTo(T[0]+nx*w1*0.18,T[1]+ny*w1*0.18);ctx.stroke();
+ ctx.strokeStyle='rgba(0,0,0,0.25)';ctx.lineWidth=2;for(let i=1;i<5;i++){const t=i/5,cx=S[0]+(T[0]-S[0])*t,cy=S[1]+(T[1]-S[1])*t,w=(w0+(w1-w0)*t)*0.4;ctx.beginPath();ctx.moveTo(cx+nx*w,cy+ny*w);ctx.quadraticCurveTo(cx+ux*6,cy+uy*6,cx-nx*w,cy-ny*w);ctx.stroke();}
+ ctx.restore();}
 function drawHand(ctx,P,side){
   const m=side==='R'; const px=MX(410,m), py=1205; const pose=HAND_POSES[P['hand.'+side+'.pose']]||HAND_POSES.rest;
   ell(ctx,410,1262,42,48,A.skin,m);
@@ -195,6 +212,7 @@ for(const s of ['L','R']){const m=s==='R';
  node({id:'w-arm-'+s+'-upper',parent:'w-body',z:14,kind:'sprite',pivot:[MX(410,m),810],pose:P=>({y:-P['body.hunch']*20,rot:(m?-1:1)*P['arm.'+s+'.shoulder']}),draw(ctx){poly(ctx,[[378,798],[442,798],[452,1022],[368,1022]],A.cloth,m);}});
  node({id:'w-arm-'+s+'-fore',parent:'w-arm-'+s+'-upper',z:15,kind:'sprite',pivot:[MX(410,m),1010],pose:P=>({rot:(m?-1:1)*P['arm.'+s+'.elbow']}),draw(ctx){poly(ctx,[[366,998],[454,998],[478,1212],[342,1212]],A.cloth,m);}});
  node({id:'w-hand-'+s,parent:'w-arm-'+s+'-fore',z:14.5,kind:'variant',pivot:[MX(410,m),1205],draw(ctx,P){drawHand(ctx,P,s);}});
+ node({id:'w-sleeve-'+s,parent:'w-arm-'+s+'-upper',z:13.5,kind:'procedural',pivot:[MX(410,m),810],draw(ctx,P){if(!ART.on)return;const k=clamp((P['arm.'+s+'.shoulder']-18)/30,0,1);if(k<=0)return;drawSleeve(ctx,P,s,k);}});
 }
 node({id:'w-flask',parent:'w-hand-R',z:19,kind:'sprite',pivot:[590,1205],draw(ctx,P){const g=P['flask.glow'];if(g>0.02){ctx.fillStyle=C.flask;for(let i=3;i>=1;i--){ctx.globalAlpha=0.08*g;ctx.beginPath();ctx.arc(600,1300,52+i*22,0,TAU);ctx.fill();}ctx.globalAlpha=1;}
   ctx.fillStyle=C.glass;ctx.beginPath();ctx.arc(600,1300,52,0,TAU);ctx.fill();ctx.save();ctx.beginPath();ctx.arc(600,1300,52,0,TAU);ctx.clip();ctx.fillStyle=C.flask;ctx.globalAlpha=0.55+0.45*g;ctx.fillRect(540,1300,120,60);ctx.globalAlpha=1;ctx.restore();ctx.beginPath();ctx.arc(600,1300,52,0,TAU);edge(ctx);rrect(ctx,588,1226,24,44,6,C.glass);rrect(ctx,584,1212,32,18,4,'#8a6a48');}});
@@ -313,7 +331,7 @@ function drawEyeKit(ctx,P,side,cx,cy,r0){const s='eye.'+side,r=r0*P[s+'.size']*P
 node({id:'standin-body',parent:'w-root',z:15,kind:'raster',pivot:[500,1560],draw(){}});
 node({id:'standin-hat',parent:'w-hat',z:81.5,kind:'raster',pivot:[500,395],draw(){}});
 const DRAWLIST=NODES.filter(n=>n.draw).sort((a,b)=>(a.z||0)-(b.z||0));
-function dynZ(n,P){if(n.id.startsWith('w-arm-')||n.id.startsWith('w-hand-')||n.id==='w-flask'){const s=n.id.includes('-L')||n.id==='w-hand-L'?'L':'R';return P['arm.'+s+'.shoulder']>28?(n.z||0)+80:(n.z||0);}return n.z||0;}
+function dynZ(n,P){if(n.id.startsWith('w-arm-')||n.id.startsWith('w-hand-')||n.id.startsWith('w-sleeve-')||n.id==='w-flask'){const s=n.id.includes('-L')||n.id==='w-hand-L'?'L':'R';return P['arm.'+s+'.shoulder']>28?(n.z||0)+80:(n.z||0);}return n.z||0;}
 function sortedDrawList(P){return DRAWLIST.slice().sort((a,b)=>dynZ(a,P)-dynZ(b,P));}
 function rigUpdate(P){for(const n of NODES){const o=n.pose?n.pose(P):{};const L=mlocal(n.pivot,o);n.world=n.parent?mmul(NODE[n.parent].world,L):L;}}
 function worldPoint(id,x,y){const n=NODE[id];return mpt(n.world,x==null?n.pivot[0]:x,y==null?n.pivot[1]:y);}
@@ -557,7 +575,7 @@ function applyArtFit(){const L=PAINTED.landmarks,set=(id,px)=>{if(NODE[id])NODE[
  set('w-brow-L',[L.eyeL[0],L.eyeL[1]-75]);set('w-brow-R',[L.eyeR[0],L.eyeR[1]-85]);set('w-eye-L',[L.eyeL[0],L.eyeL[1]]);set('w-eye-R',[L.eyeR[0],L.eyeR[1]]);
  set('w-cheek-L',[560,790]);set('w-cheek-R',[800,795]);set('w-hair-back-L',[520,640]);set('w-hair-back-R',[820,640]);set('w-ear-L',[470,700]);set('w-ear-R',[880,700]);set('w-hair-front',[660,580]);
  set('w-hat',L.hat_pivot);set('w-hat-tip',L.hat_bend);set('w-hat-charm',L.charm);
- set('w-arm-L-upper',L.shoulderL);set('w-arm-L-fore',L.elbowL);set('w-hand-L',L.wristL);set('w-arm-R-upper',L.shoulderR);set('w-arm-R-fore',L.elbowR);set('w-hand-R',L.wristR);set('w-flask',L.wristR);set('w-flask-mouth',L.flask_mouth);
+ set('w-arm-L-upper',L.shoulderL);set('w-sleeve-L',L.shoulderL);set('w-sleeve-R',L.shoulderR);set('w-arm-L-fore',L.elbowL);set('w-hand-L',L.wristL);set('w-arm-R-upper',L.shoulderR);set('w-arm-R-fore',L.elbowR);set('w-hand-R',L.wristR);set('w-flask',L.wristR);set('w-flask-mouth',L.flask_mouth);
  set('w-leg-L',L.kneeL);set('w-leg-R',L.kneeR);set('w-mount-frog',[470,990]);set('w-shadow',[L.neck[0],L.ground]);
  const eL=R(L.eyeL[0],L.eyeL[1]),eR=R(L.eyeR[0],L.eyeR[1]);ART.eyeL=[eL[0],eL[1],Ru(L.eyeL[2])];ART.eyeR=[eR[0],eR[1],Ru(L.eyeR[2])];
  const m=R(L.mouth.x,L.mouth.top);ART.mouth={x:m[0],top:m[1],scale:Ru(L.mouth.w)/230,cl:R(540,810),cr:R(775,822),mid:R(700,855),pts:PAINTED.lip.map(q=>R(q[0],q[1]))};ART.jawTravel=Ru(150);ART.lidCols={"L": {"mid": "#7a6947", "dark": "#554831", "light": "#a89379"}, "R": {"mid": "#796743", "dark": "#5c4d2f", "light": "#b3976d"}};const tt=PAINTED.manifest['mouth-teeth-top'];ART.toothRect=[...R(tt.x,tt.y),Ru(tt.w),Ru(tt.h)];

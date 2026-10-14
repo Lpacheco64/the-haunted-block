@@ -5,7 +5,7 @@
 // ===================================================================
 
 // ---------- content package (hunt.json inline for the artifact) ----------
-const HB_VERSION='2026-10-13n';
+const HB_VERSION='2026-10-14a';
 const HUNT={id:'haunted-block-2026',title:'The Block Is Haunted',
  stations:[
   {n:1,code:'hb1',scene:'assets/scenes/01-hotdog.jpg',name:'Entry Hot Dog Stand',ghost:'mustard',accent:'#e4c33a',prop:'hotdog',color:'#2b2230',
@@ -64,6 +64,8 @@ function audioMix(dt){const k=Math.min(1,dt*2.5),cl=v=>Math.max(0,Math.min(1,v))
  if(finaleAudio){finaleAudio.vol=cl(finaleAudio.vol+(finaleAudio.target-finaleAudio.vol)*k);if(finaleAudio.gain)finaleAudio.gain.gain.value=finaleAudio.vol;}}
 function audioUnlock(){if(!ACTX){try{ACTX=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(ACTX&&ACTX.state==='suspended')ACTX.resume();
  if(!music&&ACTX)music=musicTrack('bg_loop',0.35);}
+// one-shot sound effects from assets/audio/sfx_<name>.mp3 (optional; silent if the file is missing)
+function playSfx(name,vol){if(!ACTX)return;loadClip('sfx_'+name).then(buf=>{if(!buf)return;const s=ACTX.createBufferSource();s.buffer=buf;const g=ACTX.createGain();g.gain.value=vol==null?0.8:vol;s.connect(g);g.connect(ACTX.destination);s.start();});}
 const clipCache={};
 async function loadClip(name){if(clipCache[name]!==undefined)return clipCache[name];let buf=null;try{const r=await fetch('assets/audio/'+name+'.mp3');if(r.ok&&ACTX)buf=await ACTX.decodeAudioData(await r.arrayBuffer());}catch(e){}clipCache[name]=buf;return buf;}
 // say(): returns when the line ends. Fires cue track; t null → position in text.
