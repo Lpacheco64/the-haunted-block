@@ -5,7 +5,7 @@
 // ===================================================================
 
 // ---------- content package (hunt.json inline for the artifact) ----------
-const HB_VERSION='2026-10-14c';
+const HB_VERSION='2026-10-26c';
 const HUNT={id:'haunted-block-2026',title:'The Block Is Haunted',
  stations:[
   {n:1,code:'hb1',scene:'assets/scenes/01-hotdog.jpg',name:'Entry Hot Dog Stand',ghost:'mustard',accent:'#e4c33a',prop:'hotdog',color:'#2b2230',
@@ -70,7 +70,7 @@ const clipCache={};
 async function loadClip(name){if(clipCache[name]!==undefined)return clipCache[name];let buf=null;try{const r=await fetch('assets/audio/'+name+'.mp3');if(r.ok&&ACTX)buf=await ACTX.decodeAudioData(await r.arrayBuffer());}catch(e){}clipCache[name]=buf;return buf;}
 // say(): returns when the line ends. Fires cue track; t null → position in text.
 async function say(name,text,opts={}){chatterReset();const cue=CUES[name]||{mood:opts.mood||'neutral',cues:[]};anim.setMood(opts.mood||cue.mood||'neutral');
- captionShow(text);const buf=await loadClip(name);let dur,clock;
+ const buf=await loadClip(name);let dur,clock;captionShow(text,buf&&cue.caps?cue.caps.map(t=>t/buf.duration):null);
  if(buf){const src=ACTX.createBufferSource();src.buffer=buf;src.connect(ACTX.destination);const t0=ACTX.currentTime;src.start();dur=buf.duration;clock=()=>ACTX.currentTime-t0-(ACTX.outputLatency||ACTX.baseLatency||0);
   anim.speech={env:envFromBuffer(buf),dur,t:0,style:null,lastTick:-1,shape:null,prevOpen:null,emph:0,lastPeak:-1,pv:0,clock,res:()=>{},fired:new Set()};}
  else{dur=Math.max(2,text.length*0.058);const p=anim.say(dur,null);clock=()=>anim.speech?anim.speech.t:dur;}
@@ -90,7 +90,7 @@ function chunkText(t){const MAX=76;const sentences=t.replace(/\s+/g,' ').trim().
  const pieces=[];sentences.forEach(sn=>split(sn).forEach(x=>pieces.push(x)));
  const out=[];let cur='';for(const p of pieces){if(cur&&(cur+' '+p).length>MAX){out.push(cur);cur=p;}else cur=cur?cur+' '+p:p;}if(cur)out.push(cur);return out;}
 let capHideT=null;function captionHideSoon(ms){clearTimeout(capHideT);capHideT=setTimeout(()=>{$('caption').classList.remove('show');$('capagain').classList.add('show');},ms);}
-function captionShow(t){clearTimeout(capHideT);$('capagain').classList.remove('show');capChunks=chunkText(t);const total=capChunks.reduce((a,c)=>a+c.length,0);let acc=0;capChunks=capChunks.map(c=>{const start=acc/total;acc+=c.length;return {text:c,start};});captionSet(0);if(!capHidden)$('caption').classList.add('show');}
+function captionShow(t,caps){clearTimeout(capHideT);$('capagain').classList.remove('show');capChunks=chunkText(t);const total=capChunks.reduce((a,c)=>a+c.length,0);let acc=0;capChunks=capChunks.map((c,i)=>{const start=(caps&&caps.length===capChunks.length)?caps[i]:acc/total;acc+=c.length;return {text:c,start};});captionSet(0);if(!capHidden)$('caption').classList.add('show');}
 function captionSet(i){$('captext').textContent=capChunks[i].text;$('caption').dataset.i=i;$('capwho').textContent='🧪 Agatha Bramble'+(capChunks.length>1?'  ·  '+(i+1)+' / '+capChunks.length:'');}
 function captionTick(progress){if(!capChunks||capChunks.length<2)return;let i=0;for(let k=0;k<capChunks.length;k++)if(progress>=capChunks[k].start)i=k;if(String(i)!==$('caption').dataset.i)captionSet(i);}
 $('caption').addEventListener('click',e=>{if(e.target.id==='replay')return;captionHideSoon(0);});
@@ -171,7 +171,7 @@ let wl=null;async function wakeLock(){try{if('wakeLock' in navigator){wl=await n
 
 // ---------- start / resume / close ----------
 const saved=load();if(saved&&!saved.done&&saved.step>0)$('resumebtn').style.display='';
-async function begin(resume){audioUnlock();wakeLock();sceneLoad('assets/scenes/00-entrance-wide.jpg');$('startbtn').textContent='Waking Agatha…';try{if(!ART.on){await loadCues('assets/cues',['opening','final','wrong_1','wrong_2','wrong_3',...Array.from({length:8},(_,i)=>'clue_0'+(i+1)),...Array.from({length:8},(_,i)=>'correct_0'+(i+1))]);await loadPaintedFrom('assets/witch');}await loadGhostArt('assets/ghosts');await loadJarArt('assets/jar');}catch(e){hlog('PAINTED ART FAILED: '+(e&&e.message||e));artError=String(e&&e.message||e);}$('start').classList.remove('show');if(resume&&saved){hunt.step=saved.step;jar.count=saved.count||0;$('hud').classList.add('show');$('scanner').classList.add('show');runClue();}else{clearSave();runOpening();}}
+let begun=false;async function begin(resume){if(begun)return;begun=true;audioUnlock();wakeLock();sceneLoad('assets/scenes/00-entrance-wide.jpg');$('startbtn').textContent='Waking Agatha…';try{if(!ART.on){await loadCues('assets/cues',['opening','final','wrong_1','wrong_2','wrong_3',...Array.from({length:8},(_,i)=>'clue_0'+(i+1)),...Array.from({length:8},(_,i)=>'correct_0'+(i+1))]);await loadPaintedFrom('assets/witch');}await loadGhostArt('assets/ghosts');await loadJarArt('assets/jar');}catch(e){hlog('PAINTED ART FAILED: '+(e&&e.message||e));artError=String(e&&e.message||e);}$('start').classList.remove('show');if(resume&&saved){hunt.step=saved.step;jar.count=saved.count||0;$('hud').classList.add('show');$('scanner').classList.add('show');runClue();}else{clearSave();runOpening();}}
 $('startbtn').onclick=()=>begin(false);$('resumebtn').onclick=()=>begin(true);
 $('replay').onclick=()=>{if(hunt.busy)return;const s=HUNT.stations[hunt.step];if(hunt.state==='STATION')say('clue_0'+s.n,s.clue,{mood:'suspicious'});};
 $('closebtn').onclick=()=>{save({done:true});window.close();$('final').querySelector('.card').innerHTML='<h2>All done</h2><div class="big">You can close this tab now.</div>';};
