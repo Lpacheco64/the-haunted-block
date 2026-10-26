@@ -1,0 +1,30 @@
+{
+ "clip": "correct_04.mp3",
+ "mood": "happy",
+ "cues": [
+  {
+   "at": "SHHH",
+   "t": 0.45,
+   "do": "play:surprised"
+  },
+  {
+   "at": "captured",
+   "t": 4.48,
+   "do": "play:magic"
+  },
+  {
+   "at": "captured",
+   "t": 4.48,
+   "do": "hunt:capture"
+  },
+  {
+   "at": "Let her",
+   "t": 9.85,
+   "do": "play:laughing"
+  }
+ ],
+ "caps": [
+  0
+ ],
+ "dur": 11.15
+}

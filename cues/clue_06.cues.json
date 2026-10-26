@@ -1,0 +1,26 @@
+{
+ "clip": "clue_06.mp3",
+ "mood": "suspicious",
+ "cues": [
+  {
+   "at": "mows at midnight",
+   "t": 0.64,
+   "do": "look:right"
+  },
+  {
+   "at": "nothing needs mowing",
+   "t": 2.51,
+   "do": "play:fidget"
+  },
+  {
+   "at": "catch him going",
+   "t": 10.93,
+   "do": "look:player"
+  }
+ ],
+ "caps": [
+  0,
+  5.93
+ ],
+ "dur": 14.21
+}

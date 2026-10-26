@@ -1,0 +1,26 @@
+{
+ "clip": "clue_03.mp3",
+ "mood": "suspicious",
+ "cues": [
+  {
+   "at": "Fifteen shops",
+   "t": 0.45,
+   "do": "look:wander"
+  },
+  {
+   "at": "one ghost with a plan",
+   "t": 5.61,
+   "do": "mood:suspicious"
+  },
+  {
+   "at": "Catch her if you can",
+   "t": 12.63,
+   "do": "play:laughing"
+  }
+ ],
+ "caps": [
+  0,
+  9.35
+ ],
+ "dur": 15.78
+}

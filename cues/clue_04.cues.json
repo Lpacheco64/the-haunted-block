@@ -1,0 +1,27 @@
+{
+ "clip": "clue_04.mp3",
+ "mood": "suspicious",
+ "cues": [
+  {
+   "at": "shushes",
+   "t": 0.89,
+   "do": "look:player"
+  },
+  {
+   "at": "all night through",
+   "t": 5.46,
+   "do": "look:up"
+  },
+  {
+   "at": "waiting for you",
+   "t": 12.42,
+   "do": "mood:scared"
+  }
+ ],
+ "caps": [
+  0,
+  4.73,
+  11.69
+ ],
+ "dur": 15.41
+}

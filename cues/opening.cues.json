@@ -1,0 +1,86 @@
+{
+ "clip": "opening.mp3",
+ "mood": "suspicious",
+ "cues": [
+  {
+   "at": "Agatha Bramble",
+   "t": 0.45,
+   "do": "look:player"
+  },
+  {
+   "at": "PERFECT timing",
+   "t": 6.29,
+   "do": "mood:happy"
+  },
+  {
+   "at": "PERFECT timing",
+   "t": 6.29,
+   "do": "play:hop"
+  },
+  {
+   "at": "Some FOOL",
+   "t": 8.19,
+   "do": "play:point"
+  },
+  {
+   "at": "eight spirits are loose",
+   "t": 12.85,
+   "do": "look:wander"
+  },
+  {
+   "at": "eight spirits are loose",
+   "t": 12.85,
+   "do": "play:flourish"
+  },
+  {
+   "at": "three hundred years old",
+   "t": 26.29,
+   "do": "mood:suspicious"
+  },
+  {
+   "at": "three hundred years old",
+   "t": 26.29,
+   "do": "play:wobble"
+  },
+  {
+   "at": "YOU'RE",
+   "t": 29.58,
+   "do": "look:player"
+  },
+  {
+   "at": "YOU'RE",
+   "t": 29.58,
+   "do": "play:point"
+  },
+  {
+   "at": "scan my magic circle",
+   "t": 36.05,
+   "do": "look:scanner"
+  },
+  {
+   "at": "scan my magic circle",
+   "t": 36.05,
+   "do": "play:flourish"
+  },
+  {
+   "at": "First ghost",
+   "t": 41.31,
+   "do": "mood:suspicious"
+  },
+  {
+   "at": "First ghost",
+   "t": 41.31,
+   "do": "play:hop"
+  }
+ ],
+ "caps": [
+  0,
+  5.98,
+  12.07,
+  18.47,
+  24.75,
+  32.81,
+  41.31
+ ],
+ "dur": 44.64
+}

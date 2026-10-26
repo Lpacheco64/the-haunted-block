@@ -1,0 +1,30 @@
+{
+ "clip": "correct_05.mp3",
+ "mood": "happy",
+ "cues": [
+  {
+   "at": "Got the Nibbler",
+   "t": 0.45,
+   "do": "play:surprised"
+  },
+  {
+   "at": "cheese in my jar",
+   "t": 3.86,
+   "do": "play:magic"
+  },
+  {
+   "at": "cheese in my jar",
+   "t": 3.86,
+   "do": "hunt:capture"
+  },
+  {
+   "at": "Worth it",
+   "t": 6.88,
+   "do": "play:laughing"
+  }
+ ],
+ "caps": [
+  0
+ ],
+ "dur": 10.37
+}
