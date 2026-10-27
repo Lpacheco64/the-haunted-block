@@ -1,4 +1,4 @@
-const ENGINE_VERSION='2026-10-14a';
+const ENGINE_VERSION='2026-10-27a';
 // Agatha character engine — rig, animator, painted-layer loader, compositors. Shared by lab/ and the hunt.
 'use strict';
 /* ===================================================================
@@ -40,7 +40,7 @@ const MOUTH={
  'grin':{w:190,baseH:0,jaw:0.05,lip:'smile',tooth:2},
  'grin-open':{w:200,baseH:16,jaw:0.35,lip:'smile',teeth:'top'},
  'hmm':{w:130,dx:10,baseH:0,jaw:0,lip:'sly'},
- 'surprise':{w:120,baseH:30,jaw:0.7,lip:'round',round:true},
+ 'surprise':{w:145,baseH:44,jaw:0.85,lip:'round',round:true},
  'scared':{w:190,baseH:6,jaw:0.1,lip:'wavy',teeth:'top'},
  'scared-talk':{w:190,baseH:12,jaw:0.3,lip:'wavy',teeth:'top'},
  'laugh':{w:240,baseH:40,jaw:1,lip:'smile',teeth:'both',tongue:true},
@@ -352,7 +352,7 @@ function sweepFn(u,e,o,st){const seg=Math.floor(e/1.5),s=(e%1.5)/1.5,w=Math.sin(
 const ACTIONS={
  fidget:{priority:5,duration:0.6,interruptibleAfter:0,fn(u,e,o){o['nose.rot']=6*Math.sin(u*TAU*2);}},
  surprised:{priority:30,duration:0.9,interruptibleAfter:0.3,locks:{blink:true},talkStyle:'wide',snap:true,fn(u,e,o){const b=Math.min(1,e/0.08);o['head.y']=-25*b;o['head.rot']=-3*b;o['eye.scale']=1.15;o['pupil.size']=0.75;o['eye.L.openU']=1;o['eye.R.openU']=1;o['brow.L.raise']=1;o['brow.R.raise']=1;o['mouth.shape']='surprise';o['hat.lift']=(ART.on?12:30)*Math.max(0,Math.sin(Math.min(1,e/0.35)*Math.PI));o['body.squash']=-0.1*b;}},
- laughing:{priority:40,duration:1.8,interruptibleAfter:0.6,locks:{mouth:true},fn(u,e,o){const dec=1-u*0.6,sh=Math.sin(e*TAU*6)*dec;o['head.rot']=-8+2*sh;o['head.pitch']=-0.4;o['eye.L.openU']=0.15;o['eye.R.openU']=0.15;o['eye.squint']=1;o['brow.L.raise']=0.8;o['brow.R.raise']=0.8;o['mouth.shape']='laugh';o['body.rot']=1.5*sh;o['body.squash']=0.12*Math.abs(sh);o['head.x']=6*sh;o['arm.L.shoulder']=20+10*sh;}},
+ laughing:{priority:40,duration:1.8,interruptibleAfter:0.6,locks:{mouth:true},speechMouth:true,talkStyle:'grin',fn(u,e,o){const dec=1-u*0.6,sh=Math.sin(e*TAU*6)*dec;o['head.rot']=-8+2*sh;o['head.pitch']=-0.4;o['eye.L.openU']=0.15;o['eye.R.openU']=0.15;o['eye.squint']=1;o['brow.L.raise']=0.8;o['brow.R.raise']=0.8;o['mouth.shape']='laugh';o['body.rot']=1.5*sh;o['body.squash']=0.12*Math.abs(sh);o['head.x']=6*sh;o['arm.L.shoulder']=20+10*sh;}},
  magic:{priority:50,duration:2.4,interruptibleAfter:1.2,locks:{gaze:true},talkStyle:'wide',fn(u,e,o){const ant=e<0.2?e/0.2:Math.max(0,1-(e-0.2)/0.3);o['body.squash']=0.3*ant-0.08*(1-ant);const up=easeOut(clamp((e-0.15)/0.5,0,1));o['arm.R.shoulder']=8+112*up;o['arm.R.elbow']=-15-55*up;o['arm.L.shoulder']=35*up;o['hand.L.pose']='casting';o['flask.glow']=up;o['body.hover']=0.4*up;o['gaze.x']=0.55*up;o['gaze.y']=-0.7*up;o['head.rot']=-6*up;o['brow.L.raise']=0.9;o['brow.R.raise']=0.9;o['mouth.shape']=e<0.6?'talk-wide-o':'excited';o['eye.scale']=1.08;}},
  celebrating:{priority:60,duration:3,interruptibleAfter:1,locks:{gaze:true},talkStyle:'grin',fn(u,e,o){const b=e<1.6?Math.abs(Math.sin(e*TAU*0.66)):0;o['body.y']=-90*b;o['body.squash']=e<1.6?-0.25*b+0.15*(1-b):0;o['arm.L.shoulder']=150;o['arm.R.shoulder']=150;o['arm.L.elbow']=-20;o['arm.R.elbow']=-20;o['hand.L.pose']='open';o['hand.R.pose']='open';o['mouth.shape']='excited';o['gaze.x']=0;o['gaze.y']=0.1;o['brow.L.raise']=0.9;o['brow.R.raise']=0.9;o['head.rot']=5*Math.sin(e*TAU*1.3);o['fx.stars']=e<2?1:0;o['eye.squint']=0.3;}},
  hop:{priority:35,duration:0.9,interruptibleAfter:0.3,fn(u,e,o){const a=u<0.2?u/0.2:0,air=u>0.2&&u<0.78?Math.sin((u-0.2)/0.58*Math.PI):0,land=u>=0.78?Math.sin((u-0.78)/0.22*Math.PI):0;o['body.squash']=0.28*a*(1-0.1*a)-0.2*air+0.22*land;o['body.y']=-80*air;o['arm.L.shoulder']=20+70*air;o['arm.R.shoulder']=14+40*air;o['hat.lift']=22*air;o['eye.scale']=1.1;o['brow.L.raise']=0.8*air;o['brow.R.raise']=0.8*air;o['head.pitch']=-0.2*air;}},
@@ -384,7 +384,7 @@ class Animator{
   this.pins={};this.events=[];this.spam=null;}
  log(s,bad){this.events.push({t:this.t,s,bad});if(this.events.length>200)this.events.shift();}
  setMood(m){if(!MOODS[m]||m===this.mood)return;this.prevMood=this.mood;this.mood=m;this.moodT=0;this.log('mood → '+m);}
- play(id,opts={}){const def=ACTIONS[id];return new Promise(res=>{if(!def){res({status:'rejected',reason:'unknown'});return;}
+ play(id,opts={}){const def=ACTIONS[id];if(def&&this.onAction)try{this.onAction(id,!!this.speech);}catch(e){}return new Promise(res=>{if(!def){res({status:'rejected',reason:'unknown'});return;}
   const cur=this.action,start=()=>{if(cur)this.interrupt();this.action={id,def,elapsed:0,res,st:opts.st||{},snap:{}};if(def.snap)this.snapUntil=this.t+0.05;this.log('action start '+id);};
   if(!cur)start();else if(def.priority>cur.def.priority){if(cur.elapsed>=cur.def.interruptibleAfter||opts.force)start();else{this.log('action '+id+' rejected (current not yet interruptible)');res({status:'rejected',reason:'not-interruptible'});}}
   else if(def.priority===cur.def.priority)start();
@@ -415,11 +415,11 @@ class Animator{
   const sp=this.speech;
   if(sp){if(sp.clock)sp.t=Math.max(0,sp.clock());else sp.t+=dt;if(sp.clock&&cueTrack){cueTrack.cues.forEach((c,i)=>{if(c.t!=null&&!sp.fired.has(i)&&sp.t>=c.t){sp.fired.add(i);runCue(c);}});}
    if(sp.t>=sp.dur){sp.res({status:'completed'});this.speech=null;this.log('speech completed');}
-   else{const style=(act&&act.def.talkStyle)||sp.style||MOODS[this.mood].talkStyle;const set=TALK_SETS[style]||TALK_SETS.normal;const lv=sp.env[Math.min(sp.env.length-1,Math.floor(sp.t*100))];
+   else{const aStyle=act&&act.def.talkStyle;const style=(aStyle&&aStyle!=='wide')?aStyle:(sp.style||MOODS[this.mood].talkStyle);const set=TALK_SETS[style]||TALK_SETS.normal;const lv=sp.env[Math.min(sp.env.length-1,Math.floor(sp.t*100))];
     const tick=style==='shaky'?0.09+(rng()-0.5)*0.06:0.09;
     if(sp.t-sp.lastTick>=tick){sp.lastTick=sp.t;let ns;if(lv<0.08)ns=set.closed;else{const arr=lv<0.35?set.low:lv<0.7?set.mid:set.high;const c=arr.filter(s=>s!==sp.prevOpen);ns=c[Math.floor(rng()*c.length)]||arr[0];sp.prevOpen=ns;}sp.shape=ns;}
     if(lv-sp.pv>0.35&&sp.t-sp.lastPeak>0.35){sp.lastPeak=sp.t;sp.emph=1;}sp.pv=lerp(sp.pv,lv,0.5);sp.emph=Math.max(0,sp.emph-dt/0.25);
-    if(!locks.mouth){out['mouth.shape']=sp.shape||set.closed;out['mouth.open']=lv;out['jaw.scale']=0.5+0.5*lv;}
+    if(!locks.mouth||(act&&act.def.speechMouth)){out['mouth.shape']=sp.shape||set.closed;out['mouth.open']=lv;out['jaw.scale']=0.5+0.5*lv;}
     out['head.rot']+=-2*sp.emph;out['brow.L.raise']+=0.25*sp.emph;out['brow.R.raise']+=0.25*sp.emph;}}
   // ---- liveliness: continuous cartoon secondary motion + random idle gags (additive; calmer while a scripted action runs) ----
   {const amp=(this.action?0.35:1)*(this.live==null?1:this.live)*(this.big?1.7:1),sp3=this.speech,lvl=sp3?clamp(sp3.pv*1.6,0,1):0,em=sp3?sp3.emph:0,st=sp3?sp3.t:t,sn=(f,ph)=>Math.sin(t*f+(ph||0)),pos=x=>x>0?x:0;
