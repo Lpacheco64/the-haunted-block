@@ -5,7 +5,7 @@
 // ===================================================================
 
 // ---------- content package (hunt.json inline for the artifact) ----------
-const HB_VERSION='2026-10-26c';
+const HB_VERSION='2026-10-27b';
 const HUNT={id:'haunted-block-2026',title:'The Block Is Haunted',
  stations:[
   {n:1,code:'hb1',scene:'assets/scenes/01-hotdog.jpg',name:'Entry Hot Dog Stand',ghost:'mustard',accent:'#e4c33a',prop:'hotdog',color:'#2b2230',
@@ -69,15 +69,16 @@ function playSfx(name,vol){if(!ACTX)return;loadClip('sfx_'+name).then(buf=>{if(!
 const clipCache={};
 async function loadClip(name){if(clipCache[name]!==undefined)return clipCache[name];let buf=null;try{const r=await fetch('assets/audio/'+name+'.mp3');if(r.ok&&ACTX)buf=await ACTX.decodeAudioData(await r.arrayBuffer());}catch(e){}clipCache[name]=buf;return buf;}
 // say(): returns when the line ends. Fires cue track; t null → position in text.
-async function say(name,text,opts={}){chatterReset();const cue=CUES[name]||{mood:opts.mood||'neutral',cues:[]};anim.setMood(opts.mood||cue.mood||'neutral');
- const buf=await loadClip(name);let dur,clock;captionShow(text,buf&&cue.caps?cue.caps.map(t=>t/buf.duration):null);
- if(buf){const src=ACTX.createBufferSource();src.buffer=buf;src.connect(ACTX.destination);const t0=ACTX.currentTime;src.start();dur=buf.duration;clock=()=>ACTX.currentTime-t0-(ACTX.outputLatency||ACTX.baseLatency||0);
+let voiceSrc=null;function voiceStop(){if(voiceSrc){try{voiceSrc.stop();}catch(e){}voiceSrc=null;}anim.stopSpeaking();}
+let sayGen=0;async function say(name,text,opts={}){chatterReset();if(anim.speech||voiceSrc)voiceStop();const gen=++sayGen;const cue=CUES[name]||{mood:opts.mood||'neutral',cues:[]};anim.setMood(opts.mood||cue.mood||'neutral');
+ const buf=await loadClip(name);if(gen!==sayGen)return;let dur,clock;captionShow(text,buf&&cue.caps?cue.caps.map(t=>t/buf.duration):null);
+ if(buf){const src=ACTX.createBufferSource();src.buffer=buf;src.connect(ACTX.destination);const t0=ACTX.currentTime;src.start();voiceSrc=src;src.onended=()=>{if(voiceSrc===src)voiceSrc=null;};dur=buf.duration;clock=()=>ACTX.currentTime-t0-(ACTX.outputLatency||ACTX.baseLatency||0);
   anim.speech={env:envFromBuffer(buf),dur,t:0,style:null,lastTick:-1,shape:null,prevOpen:null,emph:0,lastPeak:-1,pv:0,clock,res:()=>{},fired:new Set()};}
  else{dur=Math.max(2,text.length*0.058);const p=anim.say(dur,null);clock=()=>anim.speech?anim.speech.t:dur;}
  const fired=new Set();const total=text.length;
  const timed=cue.cues.map(c=>({...c,at_t:c.t!=null?c.t:(Math.max(0,text.indexOf(c.at))/total)*dur}));
- while(clock()<dur&&anim.speech){const t=clock();captionTick(t/dur);timed.forEach((c,i)=>{if(!fired.has(i)&&t>=c.at_t){fired.add(i);applyCue(c);}});await waitSec(0.05);}
- anim.stopSpeaking();if(hunt.state==='STATION'||hunt.state==='DONE')captionHideSoon(5000);return;}
+ while(gen===sayGen&&clock()<dur&&anim.speech){const t=clock();captionTick(t/dur);timed.forEach((c,i)=>{if(!fired.has(i)&&t>=c.at_t){fired.add(i);applyCue(c);}});await waitSec(0.05);}
+ if(gen!==sayGen)return;voiceStop();if(hunt.state==='STATION'||hunt.state==='DONE')captionHideSoon(5000);return;}
 function applyCue(c){const [k,a]=(c.do||'').split(':');if(k==='mood')anim.setMood(a);else if(k==='play')anim.play(a);else if(k==='look')anim.lookAt(a==='scanner'?'down':a);else if(k==='hunt'){if(a==='capture')jarCapture();if(a==='release')jarRelease();}else if(k==='sfx'&&a==='jar_rattle')jar.rattle=1.2;}
 
 // ---------- HUD ----------
@@ -182,6 +183,7 @@ if(new URLSearchParams(location.search).get('dev')==='1')devOn();
 $('devtap').addEventListener('pointerdown',()=>{if(++devTaps>=5)devOn();});
 $('devcorrect').onclick=()=>onScanText(HUNT.stations[hunt.step].code);
 // other dev actions live in the console: devWrong(), devNext(), devReset()
+anim.onAction=(id,speaking)=>{if(speaking)return;if(id==='surprised'){playSfx('scream',0.5);haptic(25);}else if(id==='scared'){playSfx('scream',0.35);}};
 window.devWrong=()=>onScanText('hb'+(((hunt.step+3)%8)+1));window.devNext=()=>{if(hunt.busy)return;if(hunt.step<7){hunt.step++;jar.count=hunt.step;runClue();}};window.devReset=()=>{clearSave();location.reload();};
 function devRefresh(){}
 
@@ -189,9 +191,9 @@ function devRefresh(){}
 let chatterAt=0,lastChatter=-1,quietSince=0;
 function chatterReset(){quietSince=now;chatterAt=now+45+Math.random()*25;}
 let windAt=0;function windTick(){if(hunt.state!=='STATION'||hidden)return;if(!windAt)windAt=now+40+Math.random()*40;if(now>=windAt){windAt=now+70+Math.random()*50;if(!anim.speech)playSfx('wind',0.35);}}
-async function chatterTick(){if(hunt.state!=='STATION'||hunt.busy||anim.speech||anim.action||hidden)return;if(now<chatterAt)return;
+let chatterLock=false;async function chatterTick(){if(chatterLock||hunt.state!=='STATION'||hunt.busy||anim.speech||anim.action||hidden)return;if(now<chatterAt)return;chatterLock=true;try{
  let i;do{i=Math.floor(Math.random()*HUNT.chatter.length);}while(i===lastChatter);const name='chatter_'+String(i+1).padStart(2,'0');
- const buf=await loadClip(name);if(!buf&&!$('dev').classList.contains('show')){chatterAt=now+30;return;}lastChatter=i;hunt.busy=true;await say(name,HUNT.chatter[i],{mood:Math.random()<0.5?'suspicious':'happy'});hunt.busy=false;anim.lookAt('down');chatterReset();}
+ const buf=await loadClip(name);if(!buf&&!$('dev').classList.contains('show')){chatterAt=now+30;return;}if(hunt.busy||anim.speech||hunt.state!=='STATION'){chatterAt=now+8;return;}lastChatter=i;hunt.busy=true;await say(name,HUNT.chatter[i],{mood:Math.random()<0.5?'suspicious':'happy'});hunt.busy=false;anim.lookAt('down');chatterReset();}finally{chatterLock=false;}}
 // ---------- tap reactions ----------
 function screenOf(id,px,py){const S=LAYER_SPACE,[wx,wy]=worldPoint(id,S.ox+px/S.ppu,S.oy+py/S.ppu);return[(view[0]*wx+view[2]*wy+view[4])/DPR,(view[1]*wx+view[3]*wy+view[5])/DPR,view[0]/DPR/S.ppu];}
 const TAPS=[['w-nose',690,875,95,'sneeze'],['w-leg-L',455,1500,80,'toe'],['w-leg-R',545,1500,80,'toe'],['w-eye-L',600,690,72,'winkL'],['w-eye-R',730,705,66,'winkR'],['w-hat',560,280,240,'hatbump'],['w-flask',700,1395,115,'bubble'],['w-torso',620,1120,175,'laughing']];
