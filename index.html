@@ -45,9 +45,11 @@ h1{font-size:clamp(28px,8vw,40px);margin:0 0 6px;letter-spacing:.02em}
 .card h2{margin:0 0 6px;font-size:26px}
 .card .big{font-size:20px;font-weight:700;margin:14px 0 18px}
 .card .btn{background:#2a1f2b;color:#fff;box-shadow:none}
-#dev{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 6px);z-index:4;display:none}
-#dev.show{display:block}
-#dev button{font:inherit;font-size:11px;background:rgba(12,8,22,0.45);color:var(--ink);border:1px solid rgba(255,255,255,0.18);border-radius:999px;padding:4px 12px;opacity:0.8}
+#dev{position:fixed;left:0;right:0;bottom:0;z-index:4;display:none;justify-content:center;gap:5px;padding:5px 6px calc(env(safe-area-inset-bottom,0px) + 5px);background:linear-gradient(to top,rgba(8,5,16,0.75),rgba(8,5,16,0));pointer-events:none}
+#dev.show{display:flex}
+#dev button{pointer-events:auto;font:inherit;font-size:10.5px;line-height:1;background:rgba(12,8,22,0.55);color:var(--ink);border:1px solid rgba(255,255,255,0.2);border-radius:999px;padding:6px 9px;opacity:0.85;white-space:nowrap}
+#dev button:active{background:rgba(120,80,200,0.6)}
+body.dev #scanner{bottom:calc(env(safe-area-inset-bottom,0px) + 46px)}
 #devtap{position:fixed;left:0;top:0;width:60px;height:60px;z-index:5}
 #shake.on{animation:shake .4s}
 @keyframes shake{0%,100%{transform:translate(0,0)}20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-2px)}}
@@ -61,7 +63,7 @@ h1{font-size:clamp(28px,8vw,40px);margin:0 0 6px;letter-spacing:.02em}
 <div id="scanner"><div id="scanwin"><video id="scanvid" muted playsinline autoplay></video><button id="scanbtn">Tap to enable the magic circle</button></div><div id="scanhint">scan the next circle</div></div>
 <div id="start" class="screen show"><h1>The Block Is Haunted</h1><p class="sub">Eight ghosts are loose. Agatha needs a hand.</p><button class="btn" id="startbtn">Let's go</button><button class="btn ghost" id="resumebtn" style="display:none">Pick up where I left off</button><div id="ver" style="position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:10px;opacity:0.45"></div></div>
 <div id="final" class="screen"><div class="card"><h2>You did it!</h2><div>The Block Is Haunted · Halloween 2026</div><div class="big">Show this screen at the office to collect your prize</div><button class="btn" id="closebtn">Close</button></div></div>
-<div id="dev"><button id="devcorrect">✓ scan</button></div>
+<div id="dev"><button id="devcorrect">✓ scan</button><button id="devwrong">✗ wrong</button><button id="devskip">⏭ skip</button><button id="devchat">🗣 chat</button><button id="devfinale">🎉 finale</button><button id="devreset">↺ reset</button><button id="devhide">×</button></div>
 <div id="devtap"></div>
 <script src="src/engine.js"></script>
 <script src="src/actors.js"></script>
