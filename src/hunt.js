@@ -5,7 +5,7 @@
 // ===================================================================
 
 // ---------- content package (hunt.json inline for the artifact) ----------
-const HB_VERSION='2026-10-27b';
+const HB_VERSION='2026-10-28a';
 const HUNT={id:'haunted-block-2026',title:'The Block Is Haunted',
  stations:[
   {n:1,code:'hb1',scene:'assets/scenes/01-hotdog.jpg',name:'Entry Hot Dog Stand',ghost:'mustard',accent:'#e4c33a',prop:'hotdog',color:'#2b2230',
@@ -178,10 +178,10 @@ $('replay').onclick=()=>{if(hunt.busy)return;const s=HUNT.stations[hunt.step];if
 $('closebtn').onclick=()=>{save({done:true});window.close();$('final').querySelector('.card').innerHTML='<h2>All done</h2><div class="big">You can close this tab now.</div>';};
 
 // ---------- dev mode ----------
-let devTaps=0;const devOn=()=>{$('dev').classList.add('show');};
+let devTaps=0;const devOn=()=>{$('dev').classList.add('show');document.body.classList.add('dev');};
 if(new URLSearchParams(location.search).get('dev')==='1')devOn();
 $('devtap').addEventListener('pointerdown',()=>{if(++devTaps>=5)devOn();});
-$('devcorrect').onclick=()=>onScanText(HUNT.stations[hunt.step].code);
+$('devcorrect').onclick=()=>onScanText(HUNT.stations[hunt.step].code);$('devwrong').onclick=()=>devWrong();$('devskip').onclick=()=>devNext();$('devchat').onclick=()=>{if(hunt.state==='STATION'&&!hunt.busy)chatterAt=now-1;};$('devfinale').onclick=()=>{if(hunt.busy)return;hunt.step=7;jar.count=8;ghost.st='gone';stationLabel();runFinale();};$('devreset').onclick=()=>devReset();$('devhide').onclick=()=>{$('dev').classList.remove('show');document.body.classList.remove('dev');};
 // other dev actions live in the console: devWrong(), devNext(), devReset()
 anim.onAction=(id,speaking)=>{if(speaking)return;if(id==='surprised'){playSfx('scream',0.5);haptic(25);}else if(id==='scared'){playSfx('scream',0.35);}};
 window.devWrong=()=>onScanText('hb'+(((hunt.step+3)%8)+1));window.devNext=()=>{if(hunt.busy)return;if(hunt.step<7){hunt.step++;jar.count=hunt.step;runClue();}};window.devReset=()=>{clearSave();location.reload();};
