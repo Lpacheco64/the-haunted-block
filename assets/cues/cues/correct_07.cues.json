@@ -1,0 +1,30 @@
+{
+ "clip": "correct_07.mp3",
+ "mood": "happy",
+ "cues": [
+  {
+   "at": "One FINAL encore",
+   "t": 0.37,
+   "do": "play:surprised"
+  },
+  {
+   "at": "from inside the jar",
+   "t": 2.97,
+   "do": "play:magic"
+  },
+  {
+   "at": "from inside the jar",
+   "t": 2.97,
+   "do": "hunt:capture"
+  },
+  {
+   "at": "CAUGHT",
+   "t": 7.17,
+   "do": "play:laughing"
+  }
+ ],
+ "caps": [
+  0
+ ],
+ "dur": 8.36
+}

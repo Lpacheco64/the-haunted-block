@@ -1,0 +1,31 @@
+{
+ "clip": "clue_07.mp3",
+ "mood": "scared",
+ "cues": [
+  {
+   "at": "hear her before you see",
+   "t": 0.99,
+   "do": "look:left"
+  },
+  {
+   "at": "that wail",
+   "t": 4.17,
+   "do": "play:surprised"
+  },
+  {
+   "at": "since 1987",
+   "t": 10.28,
+   "do": "mood:suspicious"
+  },
+  {
+   "at": "for pity's sake",
+   "t": 13.75,
+   "do": "look:player"
+  }
+ ],
+ "caps": [
+  0,
+  7.77
+ ],
+ "dur": 15.56
+}

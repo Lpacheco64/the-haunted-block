@@ -1,0 +1,20 @@
+{
+ "clip": "wrong_2.mp3",
+ "mood": "suspicious",
+ "cues": [
+  {
+   "at": "Nope",
+   "t": 0.35,
+   "do": "play:fidget"
+  },
+  {
+   "at": "Don't answer that",
+   "t": 3.39,
+   "do": "play:laughing"
+  }
+ ],
+ "caps": [
+  0
+ ],
+ "dur": 5.53
+}
