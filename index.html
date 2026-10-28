@@ -45,11 +45,12 @@ h1{font-size:clamp(28px,8vw,40px);margin:0 0 6px;letter-spacing:.02em}
 .card h2{margin:0 0 6px;font-size:26px}
 .card .big{font-size:20px;font-weight:700;margin:14px 0 18px}
 .card .btn{background:#2a1f2b;color:#fff;box-shadow:none}
-#dev{position:fixed;left:0;right:0;bottom:0;z-index:4;display:none;justify-content:center;gap:5px;padding:5px 6px calc(env(safe-area-inset-bottom,0px) + 5px);background:linear-gradient(to top,rgba(8,5,16,0.75),rgba(8,5,16,0));pointer-events:none}
+#dev{position:fixed;left:0;right:0;bottom:0;z-index:4;display:none;flex-wrap:wrap;justify-content:center;gap:4px;padding:5px 6px calc(env(safe-area-inset-bottom,0px) + 5px);background:linear-gradient(to top,rgba(8,5,16,0.75),rgba(8,5,16,0));pointer-events:none}
 #dev.show{display:flex}
-#dev button{pointer-events:auto;font:inherit;font-size:10.5px;line-height:1;background:rgba(12,8,22,0.55);color:var(--ink);border:1px solid rgba(255,255,255,0.2);border-radius:999px;padding:6px 9px;opacity:0.85;white-space:nowrap}
+#dev button{pointer-events:auto;font:inherit;font-size:10.5px;line-height:1;background:rgba(12,8,22,0.55);color:var(--ink);border:1px solid rgba(255,255,255,0.2);border-radius:999px;padding:6px 8px;opacity:0.85;white-space:nowrap;flex:0 0 auto}
 #dev button:active{background:rgba(120,80,200,0.6)}
 body.dev #scanner{bottom:calc(env(safe-area-inset-bottom,0px) + 46px)}
+@media (max-width:390px){body.dev #scanner{bottom:calc(env(safe-area-inset-bottom,0px) + 76px)}}
 #devtap{position:fixed;left:0;top:0;width:60px;height:60px;z-index:5}
 #shake.on{animation:shake .4s}
 @keyframes shake{0%,100%{transform:translate(0,0)}20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-2px)}}
