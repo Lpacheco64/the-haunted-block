@@ -4,13 +4,17 @@
  "cues": [
   {
    "at": "Wrong circle",
-   "t": null,
+   "t": 0.35,
    "do": "look:scanner"
   },
   {
    "at": "LISTEN",
-   "t": null,
+   "t": 3.83,
    "do": "look:player"
   }
- ]
+ ],
+ "caps": [
+  0
+ ],
+ "dur": 7.09
 }

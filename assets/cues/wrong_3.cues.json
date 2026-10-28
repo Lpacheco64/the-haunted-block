@@ -4,18 +4,22 @@
  "cues": [
   {
    "at": "Not it",
-   "t": null,
+   "t": 0.39,
    "do": "look:scanner"
   },
   {
    "at": "shaking their heads",
-   "t": null,
+   "t": 2.98,
    "do": "look:wander"
   },
   {
    "at": "Try again",
-   "t": null,
+   "t": 4.57,
    "do": "look:player"
   }
- ]
+ ],
+ "caps": [
+  0
+ ],
+ "dur": 6.0
 }

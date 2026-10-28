@@ -4,18 +4,23 @@
  "cues": [
   {
    "at": "hot dogs steam",
-   "t": null,
+   "t": 3.7,
    "do": "look:left"
   },
   {
    "at": "Right where you walked in",
-   "t": null,
+   "t": 5.41,
    "do": "look:player"
   },
   {
    "at": "make him scream",
-   "t": null,
+   "t": 7.93,
    "do": "play:laughing"
   }
- ]
+ ],
+ "caps": [
+  0,
+  7.65
+ ],
+ "dur": 10.22
 }

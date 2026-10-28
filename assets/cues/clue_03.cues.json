@@ -4,18 +4,23 @@
  "cues": [
   {
    "at": "Fifteen shops",
-   "t": null,
+   "t": 0.21,
    "do": "look:wander"
   },
   {
    "at": "one ghost with a plan",
-   "t": null,
+   "t": 4.22,
    "do": "mood:suspicious"
   },
   {
    "at": "Catch her if you can",
-   "t": null,
+   "t": 9.65,
    "do": "play:laughing"
   }
- ]
+ ],
+ "caps": [
+  0,
+  7.13
+ ],
+ "dur": 12.4
 }

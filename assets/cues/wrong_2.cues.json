@@ -4,13 +4,17 @@
  "cues": [
   {
    "at": "Nope",
-   "t": null,
+   "t": 0.35,
    "do": "play:fidget"
   },
   {
    "at": "Don't answer that",
-   "t": null,
+   "t": 3.39,
    "do": "play:laughing"
   }
- ]
+ ],
+ "caps": [
+  0
+ ],
+ "dur": 5.53
 }

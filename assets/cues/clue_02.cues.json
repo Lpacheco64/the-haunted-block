@@ -4,18 +4,24 @@
  "cues": [
   {
    "at": "bottom of the stairs",
-   "t": null,
+   "t": 0.98,
    "do": "look:up"
   },
   {
    "at": "Careful",
-   "t": null,
+   "t": 9.35,
    "do": "play:surprised"
   },
   {
    "at": "she bites feet",
-   "t": null,
+   "t": 10.57,
    "do": "look:down"
   }
- ]
+ ],
+ "caps": [
+  0,
+  3.33,
+  9.35
+ ],
+ "dur": 13.12
 }

@@ -4,23 +4,27 @@
  "cues": [
   {
    "at": "Got the Nibbler",
-   "t": null,
+   "t": 0.35,
    "do": "play:surprised"
   },
   {
    "at": "cheese in my jar",
-   "t": null,
+   "t": 3.04,
    "do": "play:magic"
   },
   {
    "at": "cheese in my jar",
-   "t": null,
+   "t": 3.04,
    "do": "hunt:capture"
   },
   {
    "at": "Worth it",
-   "t": null,
+   "t": 5.91,
    "do": "play:laughing"
   }
- ]
+ ],
+ "caps": [
+  0
+ ],
+ "dur": 8.77
 }

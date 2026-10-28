@@ -4,18 +4,23 @@
  "cues": [
   {
    "at": "Sweet as honey",
-   "t": null,
+   "t": 0.35,
    "do": "mood:happy"
   },
   {
    "at": "sharp as cheese",
-   "t": null,
+   "t": 2.15,
    "do": "play:surprised"
   },
   {
    "at": "Get him, please",
-   "t": null,
+   "t": 7.33,
    "do": "look:player"
   }
- ]
+ ],
+ "caps": [
+  0,
+  7.33
+ ],
+ "dur": 9.26
 }

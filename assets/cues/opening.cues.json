@@ -4,73 +4,83 @@
  "cues": [
   {
    "at": "Agatha Bramble",
-   "t": null,
+   "t": 0.35,
    "do": "look:player"
   },
   {
    "at": "PERFECT timing",
-   "t": null,
+   "t": 7.37,
    "do": "mood:happy"
   },
   {
    "at": "PERFECT timing",
-   "t": null,
+   "t": 7.37,
    "do": "play:hop"
   },
   {
    "at": "Some FOOL",
-   "t": null,
+   "t": 9.39,
    "do": "play:point"
   },
   {
    "at": "eight spirits are loose",
-   "t": null,
+   "t": 12.19,
    "do": "look:wander"
   },
   {
    "at": "eight spirits are loose",
-   "t": null,
+   "t": 12.19,
    "do": "play:flourish"
   },
   {
    "at": "three hundred years old",
-   "t": null,
+   "t": 22.92,
    "do": "mood:suspicious"
   },
   {
    "at": "three hundred years old",
-   "t": null,
+   "t": 22.92,
    "do": "play:wobble"
   },
   {
    "at": "YOU'RE",
-   "t": null,
+   "t": 25.85,
    "do": "look:player"
   },
   {
    "at": "YOU'RE",
-   "t": null,
+   "t": 25.85,
    "do": "play:point"
   },
   {
    "at": "scan my magic circle",
-   "t": null,
+   "t": 31.23,
    "do": "look:scanner"
   },
   {
    "at": "scan my magic circle",
-   "t": null,
+   "t": 31.23,
    "do": "play:flourish"
   },
   {
    "at": "First ghost",
-   "t": null,
+   "t": 35.57,
    "do": "mood:suspicious"
   },
   {
    "at": "First ghost",
-   "t": null,
+   "t": 35.57,
    "do": "play:hop"
   }
- ]
+ ],
+ "caps": [
+  0,
+  6.97,
+  11.66,
+  16.07,
+  21.49,
+  28.31,
+  35.57
+ ],
+ "dur": 38.46
 }

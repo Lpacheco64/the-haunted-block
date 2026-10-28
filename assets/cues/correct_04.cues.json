@@ -4,23 +4,27 @@
  "cues": [
   {
    "at": "SHHH",
-   "t": null,
+   "t": 0.33,
    "do": "play:surprised"
   },
   {
    "at": "captured",
-   "t": null,
+   "t": 3.3,
    "do": "play:magic"
   },
   {
    "at": "captured",
-   "t": null,
+   "t": 3.3,
    "do": "hunt:capture"
   },
   {
    "at": "Let her",
-   "t": null,
+   "t": 7.57,
    "do": "play:laughing"
   }
- ]
+ ],
+ "caps": [
+  0
+ ],
+ "dur": 8.64
 }

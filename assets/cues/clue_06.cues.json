@@ -4,18 +4,23 @@
  "cues": [
   {
    "at": "mows at midnight",
-   "t": null,
+   "t": 0.59,
    "do": "look:right"
   },
   {
    "at": "nothing needs mowing",
-   "t": null,
+   "t": 3.55,
    "do": "play:fidget"
   },
   {
    "at": "catch him going",
-   "t": null,
+   "t": 8.84,
    "do": "look:player"
   }
- ]
+ ],
+ "caps": [
+  0,
+  5.97
+ ],
+ "dur": 10.84
 }

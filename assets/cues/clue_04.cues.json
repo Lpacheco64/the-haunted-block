@@ -4,18 +4,24 @@
  "cues": [
   {
    "at": "shushes",
-   "t": null,
+   "t": 0.78,
    "do": "look:player"
   },
   {
    "at": "all night through",
-   "t": null,
+   "t": 4.6,
    "do": "look:up"
   },
   {
    "at": "waiting for you",
-   "t": null,
+   "t": 10.16,
    "do": "mood:scared"
   }
- ]
+ ],
+ "caps": [
+  0,
+  3.92,
+  9.51
+ ],
+ "dur": 12.79
 }
