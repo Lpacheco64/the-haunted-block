@@ -1,0 +1,35 @@
+{
+ "clip": "correct_08.mp3",
+ "mood": "happy",
+ "cues": [
+  {
+   "at": "THE BOSS HERSELF",
+   "t": 0.35,
+   "do": "play:surprised"
+  },
+  {
+   "at": "all EIGHT",
+   "t": 3.66,
+   "do": "play:magic"
+  },
+  {
+   "at": "all EIGHT",
+   "t": 3.66,
+   "do": "hunt:capture"
+  },
+  {
+   "at": "positively RATTLING",
+   "t": 6.61,
+   "do": "sfx:jar_rattle"
+  },
+  {
+   "at": "positively RATTLING",
+   "t": 6.61,
+   "do": "mood:scared"
+  }
+ ],
+ "caps": [
+  0
+ ],
+ "dur": 9.75
+}

@@ -1,0 +1,30 @@
+{
+ "clip": "correct_06.mp3",
+ "mood": "happy",
+ "cues": [
+  {
+   "at": "Snagged him",
+   "t": 0.35,
+   "do": "play:surprised"
+  },
+  {
+   "at": "survive without you",
+   "t": 3.61,
+   "do": "play:magic"
+  },
+  {
+   "at": "survive without you",
+   "t": 3.61,
+   "do": "hunt:capture"
+  },
+  {
+   "at": "NEXT",
+   "t": 5.77,
+   "do": "look:scanner"
+  }
+ ],
+ "caps": [
+  0
+ ],
+ "dur": 7.02
+}
